@@ -1,0 +1,11 @@
+node_modules/
+sites/
+_output/
+_archive/
+*_clone/
+*_components/
+*_deep/
+*_analysis/
+*.json
+!package.json
+!package-lock.json

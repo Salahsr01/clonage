@@ -1,0 +1,20 @@
+{
+  "name": "oue",
+  "version": "3.0.0",
+  "description": "Clone award-winning websites, extract design DNA, generate AI-ready components",
+  "main": "clone.js",
+  "scripts": {
+    "clone": "node clone.js",
+    "clone:analyze": "node clone.js --analyze",
+    "clone:visible": "HEADLESS=false node clone.js",
+    "analyze": "node deep-analyze.js",
+    "dna": "node extract-dna.js",
+    "serve": "node serve-clone.js",
+    "create": "node create-site.js"
+  },
+  "dependencies": {
+    "pixelmatch": "^7.1.0",
+    "playwright": "^1.49.0",
+    "pngjs": "^7.0.0"
+  }
+}
