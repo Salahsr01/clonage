@@ -14,6 +14,7 @@ const { chromium } = require('playwright');
 const { ensureDir, slugify, log, VIEWPORT } = require('./lib/utils');
 const { captureAssets } = require('./lib/clone');
 const { analyzeDOM } = require('./lib/analyze');
+const { captureScreenshots } = require('./lib/screenshot');
 
 // ---------------------------------------------------------------------------
 // CLI
@@ -64,9 +65,8 @@ const siteDir = path.resolve(__dirname, 'sites', siteName);
 
     // ------------------------------------------------------------------
     // Phase 3: Take reference screenshots
-    // TODO: Full-page + viewport + key sections
     // ------------------------------------------------------------------
-    log('📸', 'Phase 3: Reference screenshots — TODO');
+    await captureScreenshots(page, siteDir, analysis.sections);
 
     // ------------------------------------------------------------------
     // Phase 4: Write structured output
