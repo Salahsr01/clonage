@@ -111,6 +111,67 @@ const siteDir = path.resolve(__dirname, 'sites', siteName);
     }
 
     // ------------------------------------------------------------------
+    // Phase 1.4: Capture running animations (Web Animations API + CDP)
+    // ------------------------------------------------------------------
+    let capturedAnimations = [];
+    try {
+      log('🎬', 'Phase 1.4: Capturing animations...');
+
+      // Web Animations API — captures CSS + GSAP + WAAPI animations
+      capturedAnimations = await page.evaluate(() => {
+        function buildSelector(el) {
+          if (!el || el === document.body || el === document.documentElement) return 'body';
+          if (el.id) return `#${el.id}`;
+          const classes = (el.className?.baseVal || el.className || '').toString().trim();
+          const tag = el.tagName?.toLowerCase() || 'div';
+          if (classes) return `${tag}.${classes.split(/\s+/).slice(0, 2).join('.')}`;
+          return tag;
+        }
+
+        return document.getAnimations({ subtree: true }).map(anim => {
+          try {
+            const kf = anim.effect?.getKeyframes?.() || [];
+            const timing = anim.effect?.getComputedTiming?.() || {};
+            const target = anim.effect?.target;
+            return {
+              selector: target ? buildSelector(target) : null,
+              type: anim.constructor.name, // CSSAnimation, CSSTransition, Animation
+              animationName: anim.animationName || null,
+              playState: anim.playState,
+              keyframes: kf.map(k => {
+                const obj = {};
+                for (const [key, val] of Object.entries(k)) {
+                  if (key !== 'offset' && key !== 'computedOffset' && key !== 'easing' && key !== 'composite') {
+                    obj[key] = val;
+                  }
+                }
+                obj.offset = k.offset;
+                obj.easing = k.easing;
+                return obj;
+              }),
+              duration: timing.duration,
+              delay: timing.delay,
+              iterations: timing.iterations,
+              direction: timing.direction,
+              fill: timing.fill,
+              easing: timing.easing,
+            };
+          } catch (e) { return null; }
+        }).filter(Boolean);
+      });
+
+      const fs2 = require('fs');
+      if (capturedAnimations.length > 0) {
+        fs2.writeFileSync(path.join(siteDir, 'animations.json'), JSON.stringify(capturedAnimations, null, 2));
+        log('✓', `Captured ${capturedAnimations.length} animations via Web Animations API`);
+      } else {
+        log('  ', 'No running animations found');
+      }
+    } catch (err) {
+      log('⚠️', `Animation capture failed (non-fatal): ${err.message}`);
+    }
+
+    // ------------------------------------------------------------------
     // Phase 1.5: Bake computed styles into HTML (makes it JS-independent)
     // ------------------------------------------------------------------
     log('🎨', 'Phase 1.5: Baking styles into HTML...');
