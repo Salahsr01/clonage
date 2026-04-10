@@ -17,6 +17,36 @@ const { analyzeDOM } = require('./lib/analyze');
 const { captureScreenshots } = require('./lib/screenshot');
 
 // ---------------------------------------------------------------------------
+// Proxy Stubbing — block framework hydration, keep animation libs
+// ---------------------------------------------------------------------------
+
+const BLOCK_PATTERNS = [
+  /framework/i, /_app/i, /main-app/i, /webpack/i,
+  /react-dom/i, /react\.production/i, /next\/dist/i,
+  /hydrat/i, /nuxt/i, /vue\.runtime/i, /svelte/i,
+  /chunk-\w+\.js$/i,  // generic framework chunks (heuristic)
+];
+
+const ALLOW_PATTERNS = [
+  /gsap/i, /lenis/i, /scrolltrigger/i, /splittext/i, /customease/i,
+  /three/i, /unicornstudio/i, /spline/i, /barba/i,
+  /locomotive/i, /swiper/i, /framer-motion/i,
+  /anime/i, /motion/i, /webgl/i, /webflow/i,
+  /analytics/i, /gtag/i, /gtm/i, /posthog/i, // allow analytics (harmless)
+  /polyfill/i, /intersection-observer/i,
+];
+
+function classifyScript(url) {
+  for (const pat of ALLOW_PATTERNS) {
+    if (pat.test(url)) return 'allow';
+  }
+  for (const pat of BLOCK_PATTERNS) {
+    if (pat.test(url)) return 'block';
+  }
+  return 'allow'; // default: allow (non-framework scripts fail gracefully)
+}
+
+// ---------------------------------------------------------------------------
 // CLI
 // ---------------------------------------------------------------------------
 
@@ -53,10 +83,32 @@ const siteDir = path.resolve(__dirname, 'sites', siteName);
 
   try {
     // ------------------------------------------------------------------
+    // Phase 0.5: Proxy Stubbing — block hydration, keep animations
+    // ------------------------------------------------------------------
+    const blockedScripts = [];
+    const allowedScripts = [];
+
+    await page.route('**/*.js', (route) => {
+      const url = route.request().url();
+      const verdict = classifyScript(url);
+      if (verdict === 'block') {
+        blockedScripts.push(url.split('/').pop().split('?')[0]);
+        return route.abort();
+      }
+      allowedScripts.push(url.split('/').pop().split('?')[0]);
+      return route.continue();
+    });
+
+    // ------------------------------------------------------------------
     // Phase 1: Intercept & save assets
     // ------------------------------------------------------------------
     log('📦', 'Phase 1: Asset capture');
     const { html, resourceMap } = await captureAssets(page, siteDir, targetUrl);
+
+    log('🛡️', `Proxy Stub: ${blockedScripts.length} blocked, ${allowedScripts.length} allowed`);
+    if (blockedScripts.length > 0) {
+      log('  ', `Blocked: ${blockedScripts.slice(0, 5).join(', ')}${blockedScripts.length > 5 ? '...' : ''}`);
+    }
 
     // ------------------------------------------------------------------
     // Phase 1.5: Bake computed styles into HTML (makes it JS-independent)
@@ -139,10 +191,11 @@ const siteDir = path.resolve(__dirname, 'sites', siteName);
         if (r.top > window.innerHeight * 2 || r.top < -window.innerHeight) el.remove();
       });
 
-      // 5. Remove all script tags (prevent hydration wipe)
+      // 5. Remove script tags and preloads (baked.html = static, no JS)
+      //    Note: framework hydration was already blocked by proxy stubbing,
+      //    so the DOM state is correct. We strip scripts here for a clean static file.
       document.querySelectorAll('script').forEach(s => s.remove());
       document.querySelectorAll('link[rel="preload"][as="script"], link[rel="modulepreload"]').forEach(l => l.remove());
-      // Remove noscript tags too
       document.querySelectorAll('noscript').forEach(s => s.remove());
 
       return document.documentElement.outerHTML;
@@ -176,10 +229,49 @@ const siteDir = path.resolve(__dirname, 'sites', siteName);
     fs.writeFileSync(path.join(siteDir, 'baked.html'), '<!DOCTYPE html>\n' + bakedHtml);
     log('✓', `Baked HTML saved (${(bakedHtml.length / 1024).toFixed(0)}KB)`);
 
+    // Save proxy stub metadata
+    fs.writeFileSync(path.join(siteDir, 'proxy-stub.json'), JSON.stringify({
+      blockedScripts,
+      allowedScripts: allowedScripts.slice(0, 50), // cap for size
+      blockedCount: blockedScripts.length,
+      allowedCount: allowedScripts.length,
+    }, null, 2));
+    log('✓', `Proxy stub metadata saved`);
+
     // ------------------------------------------------------------------
     // Phase 2: Analyze page structure (DOM, computed styles, semantic tree)
     // ------------------------------------------------------------------
     const analysis = await analyzeDOM(page, siteDir);
+
+    // ------------------------------------------------------------------
+    // Phase 2.5: CDP DOMSnapshot (optional enrichment — richer data)
+    // ------------------------------------------------------------------
+    try {
+      log('🔬', 'Phase 2.5: CDP DOMSnapshot capture...');
+      const cdp = await page.context().newCDPSession(page);
+      const cdpT0 = Date.now();
+      const snapshot = await cdp.send('DOMSnapshot.captureSnapshot', {
+        computedStyles: [
+          'display', 'position', 'flex-direction', 'grid-template-columns', 'gap',
+          'font-family', 'font-size', 'font-weight', 'line-height', 'letter-spacing',
+          'color', 'background-color', 'border-radius', 'padding', 'margin',
+          'width', 'height', 'max-width', 'overflow', 'opacity', 'visibility',
+          'transform', 'z-index', 'border', 'box-shadow', 'text-align',
+          'justify-content', 'align-items',
+        ],
+        includeDOMRects: true,
+        includePaintOrder: true,
+      });
+      await cdp.detach();
+
+      const cdpJson = JSON.stringify(snapshot);
+      const fs2 = require('fs');
+      fs2.writeFileSync(path.join(siteDir, 'cdp-snapshot.json'), cdpJson);
+      const nodeCount = snapshot.documents[0]?.nodes?.nodeType?.length || 0;
+      log('✓', `CDP snapshot: ${nodeCount} nodes, ${(cdpJson.length / 1024 / 1024).toFixed(1)}MB in ${Date.now() - cdpT0}ms`);
+    } catch (err) {
+      log('⚠️', `CDP snapshot failed (non-fatal): ${err.message}`);
+    }
 
     // ------------------------------------------------------------------
     // Phase 3: Take reference screenshots

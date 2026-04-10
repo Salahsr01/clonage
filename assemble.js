@@ -364,14 +364,13 @@ if (process.argv.includes('--direct')) {
   html = html.replace(/\s+crossorigin="[^"]*"/g, '');
   html = html.replace(/\s+crossorigin/g, '');
 
-  // CRITICAL: Strip all <script> tags to prevent JS hydration from wiping SSR HTML
-  // The HTML already contains the fully rendered DOM — JS would only break it
+  // Strip remaining <script> tags (baked.html from new capture.js already has them removed,
+  // but older captures or original.html may still have scripts — strip as safety net)
   html = html.replace(/<script[\s\S]*?<\/script>/gi, '');
   html = html.replace(/<script[^>]*\/>/gi, '');
-  // Also strip <link rel="preload" as="script"> and <link rel="modulepreload">
   html = html.replace(/<link[^>]*(?:as="script"|rel="modulepreload")[^>]*>/gi, '');
 
-  // Remove preloader class that hides content before JS runs
+  // Remove preloader classes that hide content before JS runs
   html = html.replace(/class="[^"]*rk-preloading[^"]*"/g, (m) => m.replace('rk-preloading', ''));
 
   // Rewrite absolute CDN URLs → local relative paths
