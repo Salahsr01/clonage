@@ -322,3 +322,164 @@ console.log(`  Styles:     ${(stylesTotal / 1024).toFixed(1)} KB`);
 console.log(`  Inline CSS: ${(inlineStyles.length / 1024).toFixed(1)} KB`);
 console.log(`  Total HTML: ${(totalSize / 1024).toFixed(1)} KB`);
 console.log(`  Output:     ${indexPath}`);
+
+// ---------------------------------------------------------------------------
+// DIRECT MODE: Use original.html with URL rewriting (highest fidelity)
+// Usage: node assemble.js <site-dir> --direct
+// ---------------------------------------------------------------------------
+
+if (process.argv.includes('--direct')) {
+  // Prefer baked.html (pre-processed: scripts removed, styles inlined, loaders removed)
+  // Fall back to original.html
+  const bakedPath = path.join(siteDir, 'baked.html');
+  const origPath = path.join(siteDir, 'original.html');
+  const sourcePath = fs.existsSync(bakedPath) ? bakedPath : origPath;
+  if (!fs.existsSync(sourcePath)) {
+    console.error('[assemble] No baked.html or original.html found — run capture.js first');
+    process.exit(1);
+  }
+
+  console.log(`[assemble --direct] Using ${path.basename(sourcePath)}`);
+  let html = fs.readFileSync(sourcePath, 'utf-8');
+
+  // Build URL → local path map from captured assets
+  const assetsDir = path.join(siteDir, 'assets');
+  const urlMap = new Map();
+
+  function walkAssets(dir, prefix) {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walkAssets(fullPath, prefix + entry.name + '/');
+      } else {
+        urlMap.set(prefix + entry.name, fullPath);
+      }
+    }
+  }
+  walkAssets(assetsDir, 'assets/');
+
+  // Remove integrity/crossorigin attributes (blocks local CSS/JS loading)
+  html = html.replace(/\s+integrity="[^"]*"/g, '');
+  html = html.replace(/\s+crossorigin="[^"]*"/g, '');
+  html = html.replace(/\s+crossorigin/g, '');
+
+  // CRITICAL: Strip all <script> tags to prevent JS hydration from wiping SSR HTML
+  // The HTML already contains the fully rendered DOM — JS would only break it
+  html = html.replace(/<script[\s\S]*?<\/script>/gi, '');
+  html = html.replace(/<script[^>]*\/>/gi, '');
+  // Also strip <link rel="preload" as="script"> and <link rel="modulepreload">
+  html = html.replace(/<link[^>]*(?:as="script"|rel="modulepreload")[^>]*>/gi, '');
+
+  // Remove preloader class that hides content before JS runs
+  html = html.replace(/class="[^"]*rk-preloading[^"]*"/g, (m) => m.replace('rk-preloading', ''));
+
+  // Rewrite absolute CDN URLs → local relative paths
+  // Pattern: https://domain/path → assets/ext/domain/path
+  html = html.replace(/https?:\/\/([^"'\s)]+)/g, (match, rest) => {
+    // Check if we have this asset locally under assets/ext/
+    const parts = rest.split('/');
+    const domain = parts[0];
+    const urlPath = parts.slice(1).join('/');
+    const localPath = `assets/ext/${domain}/${urlPath}`;
+
+    // Check if file exists
+    const fullLocal = path.join(siteDir, localPath);
+    if (fs.existsSync(fullLocal)) {
+      return localPath;
+    }
+
+    // Try without query string
+    const cleanPath = localPath.split('?')[0];
+    const cleanFull = path.join(siteDir, cleanPath);
+    if (fs.existsSync(cleanFull)) {
+      return cleanPath;
+    }
+
+    // Check in assets/images/ (CDN images downloaded during capture)
+    const filename = rest.split('/').pop().split('?')[0];
+    const imgPath = `assets/images/${filename}`;
+    if (fs.existsSync(path.join(siteDir, imgPath))) {
+      return imgPath;
+    }
+
+    return match; // Keep original URL
+  });
+
+  // Rewrite absolute paths starting with / to point to assets/
+  // Handles: href="/_next/...", src="/static/...", url(/_next/...) etc.
+  const assetPrefixes = '_next|static|assets|images|fonts|media|marketing_website|payloadcms';
+  html = html.replace(new RegExp(`"\\/(${assetPrefixes})\\/`, 'g'), '"assets/$1/');
+  html = html.replace(new RegExp(`'\\/(${assetPrefixes})\\/`, 'g'), "'assets/$1/");
+  html = html.replace(new RegExp(`url\\(\\/(${assetPrefixes})\\/`, 'g'), 'url(assets/$1/');
+
+  // Force visibility: remove classes that hide content pending JS animations
+  // Handle both plain and tw- prefixed Tailwind classes
+  html = html.replace(/\b(?:tw-)?invisible\b/g, '');
+  html = html.replace(/\b(?:tw-)?opacity-0\b/g, '');
+  html = html.replace(/\b(?:tw-)?translate-y-\[[\d.]+(?:px|rem|em|%)\]\b/g, '');
+  html = html.replace(/\b(?:tw-)?-translate-y-full\b/g, '');
+
+  // Strip cookie/chat scripts and links (safe regex — non-greedy on specific tags)
+  html = html.replace(/<script[^>]*cookiebot[^>]*>[\s\S]*?<\/script>/gi, '');
+  html = html.replace(/<link[^>]*cookiebot[^>]*>/gi, '');
+  html = html.replace(/<link[^>]*consentcdn[^>]*>/gi, '');
+
+  // Light-touch: hide loaders, fix stuck animation states, remove cookie banners
+  html = html.replace('</head>', `<style>
+  /* Hide loaders and preloaders */
+  [class*="loader"], [class*="preloader"], [class*="loading-screen"],
+  [data-preloader], [class*="curtain"], [class*="page-transition"] {
+    display: none !important;
+  }
+  /* Hide cookie banners (Cookiebot, OneTrust, CookieYes, generic) */
+  [id*="CybotCookiebotDialog"], [id*="cookiebanner"], [id*="cookiebot"],
+  [id*="onetrust"], [id*="cookie-law"], [id*="cookie-notice"],
+  [class*="cookie-banner"], [class*="cookie-consent"], [class*="cc-window"],
+  [data-cookieconsent], [data-cky], #hs-eu-cookie-confirmation,
+  #CookieConsentStateDisplayStyles, #CookiebotDialogStyle,
+  [id*="cb-consent"], [class*="cb-cookie"], [id*="cb-navbar"] {
+    display: none !important;
+  }
+  /* Hide chat widgets (Intercom, Drift, HubSpot, Tidio, Crisp, Zendesk) */
+  [class*="intercom"], [id*="intercom"], #hubspot-messages-iframe-container,
+  [class*="drift-"], [id*="drift-"], [id*="zsiqwidget"], [id*="tidio"],
+  [id*="crisp"], [class*="chat-widget"], [class*="voice-chat"],
+  iframe[title*="chat" i], iframe[title*="widget" i] {
+    display: none !important;
+  }
+  </style>
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    function fixHidden() {
+      document.querySelectorAll('*').forEach(function(el) {
+        var cs = getComputedStyle(el);
+        if (cs.opacity === '0' && el.offsetHeight > 0) el.style.opacity = '1';
+        if (cs.visibility === 'hidden' && el.offsetHeight > 0) el.style.visibility = 'visible';
+        if (cs.clipPath && cs.clipPath.indexOf('inset') !== -1 && cs.clipPath !== 'inset(0px)' && cs.clipPath !== 'inset(0%)') {
+          el.style.clipPath = 'inset(0%)';
+        }
+      });
+    }
+    fixHidden();
+    setTimeout(fixHidden, 500);
+    setTimeout(fixHidden, 2000);
+  });
+  </script>\n</head>`);
+
+  // Write output
+  const siteName = path.basename(siteDir);
+  const outDir = path.join('output', siteName + '_direct');
+  fs.mkdirSync(outDir, { recursive: true });
+  fs.writeFileSync(path.join(outDir, 'index.html'), html);
+
+  // Symlink assets
+  const assetsLink = path.join(outDir, 'assets');
+  if (!fs.existsSync(assetsLink)) {
+    const rel = path.relative(outDir, assetsDir);
+    fs.symlinkSync(rel, assetsLink);
+  }
+
+  console.log(`[assemble --direct] ✓ Output: ${path.join(outDir, 'index.html')} (${(html.length/1024).toFixed(0)}KB)`);
+  console.log(`[assemble --direct] URLs rewritten: CDN → local assets`);
+}

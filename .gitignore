@@ -2,6 +2,7 @@ node_modules/
 sites/
 _output/
 _archive/
+output/
 *_clone/
 *_components/
 *_deep/
@@ -9,3 +10,11 @@ _archive/
 *.json
 !package.json
 !package-lock.json
+.playwright-mcp/
+.superpowers/
+--analyze/
+atelier-beton/
+maxima-analysis/
+*.png
+*.jpg
+*.webp
