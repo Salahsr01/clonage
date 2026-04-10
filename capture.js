@@ -12,6 +12,7 @@
 const path = require('path');
 const { chromium } = require('playwright');
 const { ensureDir, slugify, log, VIEWPORT } = require('./lib/utils');
+const { captureAssets } = require('./lib/clone');
 
 // ---------------------------------------------------------------------------
 // CLI
@@ -51,9 +52,9 @@ const siteDir = path.resolve(__dirname, 'sites', siteName);
   try {
     // ------------------------------------------------------------------
     // Phase 1: Intercept & save assets
-    // TODO: Route handler to capture CSS, JS, fonts, images
     // ------------------------------------------------------------------
-    log('📦', 'Phase 1: Asset capture — TODO');
+    log('📦', 'Phase 1: Asset capture');
+    const { html, resourceMap } = await captureAssets(page, siteDir, targetUrl);
 
     // ------------------------------------------------------------------
     // Phase 2: Analyze page structure
