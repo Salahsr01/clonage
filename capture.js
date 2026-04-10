@@ -13,6 +13,7 @@ const path = require('path');
 const { chromium } = require('playwright');
 const { ensureDir, slugify, log, VIEWPORT } = require('./lib/utils');
 const { captureAssets } = require('./lib/clone');
+const { analyzeDOM } = require('./lib/analyze');
 
 // ---------------------------------------------------------------------------
 // CLI
@@ -57,10 +58,9 @@ const siteDir = path.resolve(__dirname, 'sites', siteName);
     const { html, resourceMap } = await captureAssets(page, siteDir, targetUrl);
 
     // ------------------------------------------------------------------
-    // Phase 2: Analyze page structure
-    // TODO: Extract DOM tree, computed styles, animations, layout info
+    // Phase 2: Analyze page structure (DOM, computed styles, semantic tree)
     // ------------------------------------------------------------------
-    log('🔍', 'Phase 2: Structure analysis — TODO');
+    const analysis = await analyzeDOM(page, siteDir);
 
     // ------------------------------------------------------------------
     // Phase 3: Take reference screenshots
