@@ -244,9 +244,10 @@
     requestAnimationFrame(frame);
   });
 
-  const away = () => { // en haut à droite du menu, hors des entrées
+  const away = () => { // en haut à droite du menu, hors des entrées, flèche entièrement visible
     const r = menu.getBoundingClientRect();
-    return { x: Math.min(innerWidth - 20, r.right + r.width * .1), y: Math.max(20, r.top - r.height * .1) };
+    const w = cursor.firstElementChild.getBoundingClientRect().width;
+    return { x: Math.min(innerWidth - w, r.right + r.width * .1), y: Math.max(20, r.top - r.height * .1) };
   };
 
   async function demo(id) {
