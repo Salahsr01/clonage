@@ -45,6 +45,12 @@ def hat_weight(rgb):
     return np.clip((b / np.maximum(r, 1e-4) - 1.15) / 0.25, 0, 1) * (rgb.max(-1) > 0.12)
 
 
+def orange_weight(rgb):
+    r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    sat = (rgb.max(-1) - rgb.min(-1)) / np.maximum(rgb.max(-1), 1e-4)
+    return np.clip((r / np.maximum(b, 1e-4) - 3.0) / 4.0, 0, 1) * np.clip((sat - 0.7) / 0.15, 0, 1) * (rgb.max(-1) > 0.16)
+
+
 def cream_weight(rgb):
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
     mx = rgb.max(-1); mn = rgb.min(-1)
@@ -67,7 +73,7 @@ def add_heads(ao, body, heads):
     print('anneau du corps : centre', cb.round(3), 'rayon moyen', float(prof_b.mean()).__round__(3), 'couleur du cou', neck_b.round(3))
     for m in body.data.materials:
         unify_material(m)
-    hat_target = np.array(A.get('hat_col', [0.348, 0.361, 0.542]))
+    hat_target = np.array(A.get('hat_col', [0.348, 0.361, 0.542])) * np.array([0.86, 0.74, 1.10])     # bleu-violet plus franc, comme le brouillon
     known = json.loads(ao['expression_names']) if 'expression_names' in ao.keys() else []
     names = list(known)
     for name in heads:
@@ -93,11 +99,16 @@ def add_heads(ao, body, heads):
         p[:, 0] = cs * x - sn * y
         p[:, 1] = sn * x + cs * y
         p[:, 0] += A['cx']; p[:, 1] += A['cy']; p[:, 2] += A['z_ref']
-        # --- anneau du cou de la tête, à la hauteur de coupe
-        rm = np.abs(p[:, 2] - zc) < 0.010
-        if rm.sum() < 20:
+        # --- anneau du cou de la tête, à la hauteur de coupe (tranche la plus fine qui contient assez de sommets)
+        rv = None
+        for half in (0.003, 0.005, 0.008, 0.012):
+            rm = np.abs(p[:, 2] - zc) < half
+            if rm.sum() >= 60:
+                rv = p[rm][:, :2]
+                break
+        if rv is None:
             print('  !! ', name, ': pas assez de sommets au niveau de coupe', int(rm.sum()), 'zmin', float(p[:, 2].min()))
-        rv = p[rm][:, :2]
+            rv = p[np.abs(p[:, 2] - zc) < 0.012][:, :2]
         cv = rv.mean(0)
         prof_v = polar_profile(rv, cv)
         rel = p[:, :2] - cv
@@ -136,6 +147,7 @@ def add_heads(ao, body, heads):
         soft_gain(img, None, g_cream)                                   # crème : tout le dépliage, pour que le cou se raccorde
         g_hat = np.clip(hat_target / np.maximum(hat_v * g_cream, 1e-4), 0.6, 1.6)
         soft_gain(img, hat_weight, g_hat)                               # puis le bleu du chapeau seul
+        soft_gain(img, orange_weight, np.array([1.05, 0.92, 0.85]))     # et un orange de bec plus vif
         # --- découpe sous l'anneau, liaison à l'os de la tête
         bm = bmesh.new()
         bm.from_mesh(h.data)

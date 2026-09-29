@@ -432,3 +432,74 @@ def unify_material(mat, normal_strength=0.5, rough_base=0.52, rough_dark=0.16, r
     for n in nodes:
         if n.type == 'NORMAL_MAP':
             n.inputs['Strength'].default_value = normal_strength
+
+
+def repair_dark_specks(o, zone, radius=10, dark=0.40):
+    """Efface les points sombres parasites de la texture de base autour des sommets choisis par `zone(co, colors) -> masque`.
+    Chaque pixel sombre d'une fenêtre autour du point de dépliage est remplacé par la médiane des pixels clairs voisins."""
+    me = o.data
+    co = coords(o)
+    col = vertex_colors(o)
+    m = zone(co, col)
+    if not m.any():
+        return 0
+    img = base_image(o)
+    w, h = img.size
+    uv = np.empty(len(me.loops) * 2, dtype=np.float32)
+    me.uv_layers.active.data.foreach_get('uv', uv)
+    uv = uv.reshape(-1, 2)
+    vi = np.empty(len(me.loops), dtype=np.int32)
+    me.loops.foreach_get('vertex_index', vi)
+    vuv = np.zeros((len(co), 2), dtype=np.float32)
+    vuv[vi] = uv
+    px = np.empty(w * h * 4, dtype=np.float32)
+    img.pixels.foreach_get(px)
+    px = px.reshape(h, w, 4)
+    n = 0
+    seen = set()
+    for i in np.where(m)[0]:
+        cx, cy = int((vuv[i, 0] % 1.0) * (w - 1)), int((vuv[i, 1] % 1.0) * (h - 1))
+        key = (cx // radius, cy // radius)
+        if key in seen:
+            continue
+        seen.add(key)
+        x0, x1, y0, y1 = max(cx - radius, 0), min(cx + radius + 1, w), max(cy - radius, 0), min(cy + radius + 1, h)
+        win = px[y0:y1, x0:x1, :3]
+        lum = win.max(-1)
+        ok = lum > 0.6 * np.median(lum[lum > dark]) if (lum > dark).any() else None
+        if ok is None or ok.sum() < 8:
+            continue
+        good = np.median(win[ok], axis=0)
+        bad = lum <= dark * 1.4
+        win[bad] = good
+        n += int(bad.sum())
+    img.pixels.foreach_set(px.ravel())
+    img.update()
+    img.pack()
+    return n
+
+
+def smooth_region(o, center, radius, iters=6, lam=0.7):
+    """Lisse localement le maillage autour d'un point (moyenne des voisins, fondu vers le bord de la zone) :
+    efface un pli ou une rainure de quelques millimètres laissée par le remaillage."""
+    co = coords(o).astype(np.float64)
+    ed = mesh_edges(o)
+    wid = weld_ids(co.astype(np.float32))
+    k = int(wid.max()) + 1
+    P = np.zeros((k, 3)); cnt = np.zeros(k)
+    np.add.at(P, wid, co); np.add.at(cnt, wid, 1)
+    P /= cnt[:, None]
+    a, b = wid[ed[:, 0]], wid[ed[:, 1]]
+    m = a != b
+    a, b = a[m], b[m]
+    d = np.linalg.norm(P - np.asarray(center), axis=1)
+    wt = np.clip(1.0 - d / radius, 0, 1)
+    wt = wt * wt * (3 - 2 * wt)
+    for _ in range(iters):
+        S = np.zeros((k, 3)); n = np.zeros(k)
+        np.add.at(S, a, P[b]); np.add.at(n, a, 1)
+        np.add.at(S, b, P[a]); np.add.at(n, b, 1)
+        avg = np.where(n[:, None] > 0, S / np.maximum(n[:, None], 1), P)
+        P = P + (lam * wt)[:, None] * (avg - P)
+    co_new = P[wid]
+    set_coords(o, co_new)

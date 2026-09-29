@@ -82,6 +82,15 @@ def build_body(glb, collection=None):
     anchors['hat_col'] = [float(v) for v in col0[(cls0 == 'H') & (co0[:, 2] > 0.66)].mean(0)]
     print('repères du chapeau du corps', {k: (round(v, 3) if not isinstance(v, list) else v) for k, v in anchors.items()})
     cut_head(o, Z_CUT)
+    fixed = repair_dark_specks(o, lambda c, k: (c[:, 2] > 0.50) & (np.abs(c[:, 1]) < 0.06) & (c[:, 0] > 0.10) & (k.max(1) < 0.40))
+    print('points sombres du cou effacés :', fixed, 'pixels')
+    smooth_region(o, (0.17, -0.025, 0.625), 0.035, iters=8)        # rainure laissée par le remaillage sur le devant du cou
+    bpy.context.view_layer.objects.active = o                      # normales recalculées (celles du fichier sont périmées après la coupe)
+    try:
+        bpy.ops.mesh.customdata_custom_splitnormals_clear()
+    except Exception as e:
+        print('normales du corps non effacées :', e)
+    o.data.shade_smooth()
     co = coords(o)
     print('après coupe', len(co), 'sommets', 'z max', float(co[:, 2].max()))
     seeds = body_seeds(co, Z_CUT)
