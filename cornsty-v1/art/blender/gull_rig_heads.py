@@ -170,7 +170,7 @@ def add_heads(ao, body, heads):
             var.type = 'SINGLE_PROP'
             var.targets[0].id = ao
             var.targets[0].data_path = '["expression"]'
-            d.expression = 'e != %d' % idx
+            d.expression = 'abs(e - %d)' % idx           # nul (visible) seulement pour la tête choisie ; sans opérateur de comparaison, car dans Blender avec les scripts automatiques coupés le pilote serait jugé invalide
     ao['expression'] = int(ao['expression']) if 'expression' in ao.keys() else 0
     ao['expression_names'] = json.dumps(names)
     try:
