@@ -19,6 +19,7 @@ Solde de départ (2026-09-29, plan Ultra) : **4 000,1 crédits**.
 | 2026-09-29 | Styles sur la même image | GPT Image 2.5 Sunburst, qualité basse, 1k, 16:9, 4 images | Même scène que le test de style (image de base = job `62e50c3e-…`), rendu changé : 2 designer-toy · 3 jeu 3D brillant · 4 gouache 2D · 5 aplats pop. Références de style : voir plus bas | −1,00 | 3 996,35 | Accord du propriétaire : « d'autres styles sur cette image ». 4 × 0,25 comme préchiffré. Jobs `f1742231-3fe2-4647-883b-21798d2ee96f` (2), `54a8ebb4-2e0d-40c6-bb36-37b0612940da` (3), `9cf46a3e-5651-4ac1-8e72-e6f0daf5922d` (4), `498d9621-9a28-440b-a15d-87d60f6f6891` (5). |
 | 2026-09-29 | Style hybride | GPT Image 2.5 Sunburst, qualité basse, 1k, 16:9, 1 image | Mélange des styles 3 (jeu 3D brillant) et 4 (gouache 2D) sur la même scène. Références : l'image de base et les rendus des styles 3 et 4 (aucune image extérieure) | −0,25 | 3 996,10 | Accord du propriétaire : « une seule image qui les combine ». Job `2a644af7-566c-4974-b211-de45838adc80`. Coût conforme au tarif déjà préchiffré (0,25). |
 | 2026-09-29 | — | Préchiffrages du palier haut (`get_cost`, aucun job) | — | 0 | 3 996,10 | GPT Image 2.5 haute 4k, très haute 4k et Nano Banana Pro 4k (prix ci-dessous). Solde vérifié après : 3 996,1. |
+| 2026-09-29 | Étape 1 : planche de style | Nano Banana Pro, 2k (2752 × 1536), 16:9, 1 image | Planche sans texte : la Mouette, le comptoir en vignette, pochon, gobelet, bouton, cinq pastilles de couleur, quatre études de matière ; règles de rendu (formes lisses et satinées, lumière et pinceau de gouache, sans contour, lumière dorée chaude, plongée légère). Références : l'image maîtresse (job `2a644af7-…`) + la Mouette du propriétaire (média `b9ca1e66-…`), aucune image extérieure | −2,00 | 3 994,10 | Accord du propriétaire : « nano banana pro 2K … go » (à la place de GPT Image 2.5 haute 4k proposé à 4,25). Job `f1f48c44-f5d7-4546-8655-5abced4e5a5c`. Coût conforme au préchiffrage (2). Le relevé de crédits dit « Nano Banana Pro » ; le suivi du job affiche le nom interne `nano_banana_2`. Résultat en attente de validation du propriétaire. |
 
 ## Prix relevés (préchiffrage, par image ou par objet)
 
@@ -42,15 +43,13 @@ Solde de départ (2026-09-29, plan Ultra) : **4 000,1 crédits**.
 
 Rigging et animations de la bibliothèque : à chiffrer. AutoSprite : le préchiffrage échoue (avec ou sans image), à refaire au moment du test.
 
-## Étape 1 (planche de style) — en attente d'accord : 4,25 crédits
+## Étape 1 (planche de style) — réalisée le 2026-09-29, en attente de validation
 
-Remplace l'ancien « lot 1 » (fiche de rotation et comptoir), repris plus tard dans les étapes 2 et 3 du plan (`PLAN.md`).
+Remplace l'ancien « lot 1 » (fiche de rotation et comptoir), repris plus tard dans les étapes 2 et 3 du plan (`PLAN.md`). Le propriétaire a choisi Nano Banana Pro en 2k (2 crédits) plutôt que GPT Image 2.5 haute 4k (4,25 crédits proposés). Une image, lancée après préchiffrage exact (2), débit réel 2 : voir le tableau du registre.
 
-| Image | Références | Modèle | Crédits |
-|---|---|---|---:|
-| Planche de style 16:9, sans texte : palette (outremer, rouge, crème, or), études de matière (satin glacé, gouache, halo doré, étincelles jaunes), la Mouette, le comptoir, un pochon, un bouton | l'image maîtresse du style (job `2a644af7-…`) + la Mouette du propriétaire (personnage) | GPT Image 2.5 (Sunburst), qualité haute, 4k | 4,25 |
+Historique Higgsfield : trois lignes à 0 crédit (Seedream 5.0 Lite à 05:12, deux Nano Banana Pro à 05:22, heure UTC) ne figurent pas dans ce registre. Ce sont des générations sans crédit qui ne viennent pas de Claude (à confirmer par le propriétaire).
 
-Le prix vaut pour une image ; il est re-préchiffré avec les réglages exacts juste avant le lancement. Solde après : 3 991,85. Si la planche ne convient pas, la retouche est chiffrée et annoncée avant de relancer.
+Si la planche ne convient pas, la retouche est chiffrée et annoncée avant de relancer.
 
 ## Références de style et crédits d'auteur
 
