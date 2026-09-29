@@ -42,6 +42,27 @@ def import_glb(path):
     return o
 
 
+def use_collection(name):
+    """Crée (ou retrouve) une collection dans la scène active et la rend active : les imports y atterrissent."""
+    sc = bpy.context.scene
+    col = bpy.data.collections.get(name) or bpy.data.collections.new(name)
+    if col.name not in [c.name for c in sc.collection.children]:
+        sc.collection.children.link(col)
+
+    def find(lc):
+        if lc.collection == col:
+            return lc
+        for c in lc.children:
+            r = find(c)
+            if r:
+                return r
+        return None
+    lc = find(bpy.context.view_layer.layer_collection)
+    if lc:
+        bpy.context.view_layer.active_layer_collection = lc
+    return col
+
+
 def base_image(o):
     for m in o.data.materials:
         if m and m.use_nodes:
@@ -116,17 +137,7 @@ def weld_ids(co, tol=2e-5):
     return inv.reshape(-1)
 
 
-def harmonic_weights(co, edges, seeds, floor_names=None):
-    """Poids de peau par diffusion sur la surface.
-
-    seeds : dict nom -> tableau booléen (n,) des sommets sûrs (poids 1 pour ce groupe, 0 pour les autres).
-    Renvoie un tableau (n, G) normalisé et la liste des noms de groupes.
-    """
-    from scipy import sparse
-    from scipy.sparse.csgraph import connected_components
-    from scipy.sparse.linalg import splu
-    from scipy.spatial import cKDTree
-    n = len(co)
+def _graph(co, edges):
     wid = weld_ids(co)
     k = int(wid.max()) + 1
     P = np.zeros((k, 3)); cnt = np.zeros(k)
@@ -138,10 +149,69 @@ def harmonic_weights(co, edges, seeds, floor_names=None):
     key = np.unique(lo.astype(np.int64) * k + hi)
     lo, hi = (key // k).astype(int), (key % k).astype(int)
     d = np.linalg.norm(P[lo] - P[hi], axis=1)
-    w = 1.0 / np.maximum(d, 2e-3)
+    return wid, k, P, lo, hi, 1.0 / np.maximum(d, 2e-3)
+
+
+def _solve_scipy(k, lo, hi, w, fixed, B):
+    from scipy import sparse
+    from scipy.sparse.linalg import splu
     W = sparse.coo_matrix((w, (lo, hi)), shape=(k, k))
     W = (W + W.T).tocsr()
-    L = sparse.diags(np.asarray(W.sum(1)).ravel()) - W
+    L = (sparse.diags(np.asarray(W.sum(1)).ravel()) - W).tocsr()
+    free = np.where(~fixed)[0]
+    fix = np.where(fixed)[0]
+    Lff = L[free][:, free].tocsc() + sparse.identity(len(free), format='csc') * 1e-9
+    rhs = -(L[free][:, fix] @ B[fix])
+    B[free] = splu(Lff).solve(rhs)
+    return B
+
+
+def _solve_numpy(k, lo, hi, w, fixed, B, tol=1e-7, maxit=6000):
+    """Même système, gradient conjugué préconditionné (Jacobi) : aucune dépendance en dehors de numpy."""
+    free = np.where(~fixed)[0]
+    nf = len(free)
+    fi = -np.ones(k, dtype=int)
+    fi[free] = np.arange(nf)
+    ff = ~fixed[lo] & ~fixed[hi]
+    af, bf, wf = fi[lo[ff]], fi[hi[ff]], w[ff]
+    deg = np.bincount(lo, weights=w, minlength=k) + np.bincount(hi, weights=w, minlength=k)
+    diag = deg[free] + 1e-9
+    G = B.shape[1]
+    rhs = np.zeros((nf, G))
+    m1 = ~fixed[lo] & fixed[hi]
+    m2 = fixed[lo] & ~fixed[hi]
+    np.add.at(rhs, fi[lo[m1]], w[m1, None] * B[hi[m1]])
+    np.add.at(rhs, fi[hi[m2]], w[m2, None] * B[lo[m2]])
+
+    def matvec(x):
+        return diag * x - np.bincount(af, weights=wf * x[bf], minlength=nf) - np.bincount(bf, weights=wf * x[af], minlength=nf)
+
+    X = np.zeros((nf, G))
+    for c in range(G):
+        b = rhs[:, c]
+        if not b.any():
+            continue
+        x = np.zeros(nf); r = b.copy(); z = r / diag; p = z.copy(); rz = float(r @ z); bn = float(np.linalg.norm(b))
+        for _ in range(maxit):
+            Ap = matvec(p)
+            al = rz / float(p @ Ap)
+            x += al * p; r -= al * Ap
+            if float(np.linalg.norm(r)) < tol * bn:
+                break
+            z = r / diag; rz2 = float(r @ z); p = z + (rz2 / rz) * p; rz = rz2
+        X[:, c] = x
+    B[free] = X
+    return B
+
+
+def harmonic_weights(co, edges, seeds):
+    """Poids de peau par diffusion sur la surface.
+
+    seeds : dict nom -> tableau booléen (n,) des sommets sûrs (poids 1 pour ce groupe, 0 pour les autres).
+    Renvoie un tableau (n, G) normalisé et la liste des noms de groupes.
+    """
+    from_scipy = os.environ.get('CS_NO_SCIPY') != '1'
+    wid, k, P, lo, hi, w = _graph(co, edges)
     names = list(seeds.keys())
     G = len(names)
     B = np.zeros((k, G))
@@ -151,28 +221,44 @@ def harmonic_weights(co, edges, seeds, floor_names=None):
         ids = ids[~fixed[ids]]                                     # premier groupe servi gagne en cas de conflit
         B[ids, gi] = 1.0
         fixed[ids] = True
-    free = np.where(~fixed)[0]
-    fix = np.where(fixed)[0]
-    Lc = L.tocsr()
-    Lff = Lc[free][:, free].tocsc() + sparse.identity(len(free), format='csc') * 1e-9
-    rhs = -(Lc[free][:, fix] @ B[fix])
-    X = splu(Lff).solve(rhs)
-    B[free] = X
+    try:
+        if not from_scipy:
+            raise ImportError
+        B = _solve_scipy(k, lo, hi, w, fixed, B)
+    except ImportError:
+        B = _solve_numpy(k, lo, hi, w, fixed, B)
     # composantes sans aucun germe : groupe du germe le plus proche dans l'espace
-    ncomp, lab = connected_components(W, directed=False)
+    ncomp, lab = _components(k, lo, hi)
     seeded = np.zeros(ncomp, dtype=bool)
     seeded[np.unique(lab[fixed])] = True
     if not seeded.all():
-        tree = cKDTree(P[fix])
+        fix = np.where(fixed)[0]
         for c in np.where(~seeded)[0]:
             idx = np.where(lab == c)[0]
-            _, j = tree.query(P[idx])
+            d2 = ((P[idx][:, None, :] - P[fix][None, :, :]) ** 2).sum(-1)
+            j = fix[np.argmin(d2, axis=1)]
             B[idx] = 0
-            B[idx, np.argmax(B[fix][j], axis=1)] = 1.0
+            B[idx, np.argmax(B[j], axis=1)] = 1.0
     B = np.clip(B, 0, 1)
     s = B.sum(1, keepdims=True)
     B = np.where(s > 1e-9, B / np.maximum(s, 1e-9), 0)
     return B[wid], names
+
+
+def _components(k, lo, hi):
+    """Composantes connexes du graphe (numpy pur, propagation d'étiquettes)."""
+    lab = np.arange(k)
+    while True:
+        m = np.minimum(lab[lo], lab[hi])
+        new = lab.copy()
+        np.minimum.at(new, lo, m)
+        np.minimum.at(new, hi, m)
+        new = new[new]                                             # raccourcit les chaînes d'étiquettes
+        if (new == lab).all():
+            break
+        lab = new
+    u, inv = np.unique(lab, return_inverse=True)
+    return len(u), inv
 
 
 def limit_influences(Wt, k=4, cut=0.012):

@@ -210,9 +210,7 @@ def make_action(ao, name, fn, n, loop):
     return act
 
 
-def main(src, out):
-    bpy.ops.wm.open_mainfile(filepath=os.path.abspath(src))
-    ao = bpy.data.objects['ARM_gull']
+def make_all(ao):
     sc = bpy.context.scene
     sc.render.fps = FPS
     for nm, (fn, n, loop) in ACTIONS.items():
@@ -222,6 +220,11 @@ def main(src, out):
     ao.animation_data.action = bpy.data.actions['idle']
     ao['expression'] = 0
     sc.frame_start, sc.frame_end = 1, 48
+
+
+def main(src, out):
+    bpy.ops.wm.open_mainfile(filepath=os.path.abspath(src))
+    make_all(bpy.data.objects['ARM_gull'])
     bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(out))
     print('OK', out)
 

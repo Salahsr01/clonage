@@ -69,8 +69,8 @@ def body_seeds(co, zc):
     return S
 
 
-def main(glb, out):
-    bpy.ops.wm.read_factory_settings(use_empty=True)
+def build_body(glb, collection=None):
+    """Importe le corps, coupe la tête, calcule les poids, crée l'armature. Travaille dans la scène courante."""
     o = import_glb(glb)
     o.name = 'GULL_body'
     o.data.name = 'GULL_body'
@@ -80,20 +80,24 @@ def main(glb, out):
     cls0 = classify(col0)
     anchors = head_anchor(co0, cls0, zmin=0.66)
     anchors['hat_col'] = [float(v) for v in col0[(cls0 == 'H') & (co0[:, 2] > 0.66)].mean(0)]
-    print('repères du chapeau du corps', anchors)
+    print('repères du chapeau du corps', {k: (round(v, 3) if not isinstance(v, list) else v) for k, v in anchors.items()})
     cut_head(o, Z_CUT)
     co = coords(o)
     print('après coupe', len(co), 'sommets', 'z max', float(co[:, 2].max()))
     seeds = body_seeds(co, Z_CUT)
-    for k, v in seeds.items():
-        print('  germes', k, int(v.sum()))
     W, names = harmonic_weights(co, mesh_edges(o), seeds)
     W = limit_influences(W, 4)
     apply_weights(o, W, names)
-    ao = build_armature('ARM_gull', BONES)
+    ao = build_armature('ARM_gull', BONES, collection)
     bind(o, ao)
     ao['anchors'] = json.dumps(anchors)
     ao['z_cut'] = Z_CUT
+    return o, ao
+
+
+def main(glb, out):
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    build_body(glb)
     bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(out))
     print('OK', out)
 

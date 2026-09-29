@@ -53,10 +53,8 @@ def cream_weight(rgb):
     return warm * np.clip((mx - 0.2) / 0.2, 0, 1)
 
 
-def main(rig_blend, out, heads):
-    bpy.ops.wm.open_mainfile(filepath=os.path.abspath(rig_blend))
-    ao = bpy.data.objects['ARM_gull']
-    body = bpy.data.objects['GULL_body']
+def add_heads(ao, body, heads):
+    """Ajoute les têtes (dict nom -> chemin GLB) au corps rigué `body` / armature `ao`, dans la scène courante."""
     A = json.loads(ao['anchors'])
     zc = float(ao['z_cut'])
     cob = coords(body)
@@ -70,8 +68,14 @@ def main(rig_blend, out, heads):
     for m in body.data.materials:
         unify_material(m)
     hat_target = np.array(A.get('hat_col', [0.348, 0.361, 0.542]))
-    names = list(heads.keys())
-    for idx, name in enumerate(names):
+    known = json.loads(ao['expression_names']) if 'expression_names' in ao.keys() else []
+    names = list(known)
+    for name in heads:
+        if name in names:
+            raise ValueError('tête déjà présente : ' + name)
+        names.append(name)
+    for name in heads:
+        idx = names.index(name)
         h = import_glb(heads[name])
         h.name = 'GULL_head_' + name
         h.data.name = h.name
@@ -155,12 +159,18 @@ def main(rig_blend, out, heads):
             var.targets[0].id = ao
             var.targets[0].data_path = '["expression"]'
             d.expression = 'e != %d' % idx
-    ao['expression'] = 0
+    ao['expression'] = int(ao['expression']) if 'expression' in ao.keys() else 0
     ao['expression_names'] = json.dumps(names)
     try:
         ao.id_properties_ui('expression').update(min=0, max=len(names) - 1, soft_min=0, soft_max=len(names) - 1)
     except Exception:
         pass
+    return names
+
+
+def main(rig_blend, out, heads):
+    bpy.ops.wm.open_mainfile(filepath=os.path.abspath(rig_blend))
+    names = add_heads(bpy.data.objects['ARM_gull'], bpy.data.objects['GULL_body'], heads)
     bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(out))
     print('OK', out, names)
 
