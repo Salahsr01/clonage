@@ -14,6 +14,7 @@ Solde de départ (2026-09-29, plan Ultra) : **4 000,1 crédits**.
 | 2026-09-29 | — | Préchiffrages (`get_cost`, aucun job) | — | 0 | 4 000,1 | Prix relevés ci-dessous. |
 | 2026-09-29 | — | Génération du propriétaire (hors Claude) : GPT Image 2.5 Sunburst | image de référence de la Mouette | −1,5 | 3 998,6 | Deux générations Nano Banana Pro du propriétaire sont aussi à 0 crédit dans l'historique. |
 | 2026-09-29 | — | Préchiffrages supplémentaires | — | 0 | 3 998,6 | Solde vérifié avant et après. |
+| 2026-09-29 | Test de style | GPT Image 2.5 Sunburst, qualité basse, 1k, 16:9, 1 image | Comptoir Cornsty en feutre, lumière dorée, plongée douce. Références : la Mouette du propriétaire + une capture propre du kiosque actuel (sans interface, sans Mouette) | −0,25 | 3 998,35 | Accord du propriétaire : une seule image, le modèle le moins cher. Job `62e50c3e-cb11-4925-8472-3359d8900057`. Coût conforme au préchiffrage (0,25). |
 
 ## Prix relevés (préchiffrage, par image ou par objet)
 
@@ -31,7 +32,7 @@ Solde de départ (2026-09-29, plan Ultra) : **4 000,1 crédits**.
 
 Rigging, animations de la bibliothèque et AutoSprite : à chiffrer avec une image en entrée (le préchiffrage d'AutoSprite sans image a échoué).
 
-## Lot 1 — en attente d'accord : 8 crédits
+## Lot 1 — en attente d'accord : 8 crédits (le test de style ci-dessus vient avant)
 
 | Image | Références | Modèle | Crédits |
 |---|---|---|---:|
