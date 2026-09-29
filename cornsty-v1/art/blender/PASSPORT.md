@@ -52,7 +52,9 @@ Aucune génération : zéro crédit Higgsfield.
 - 24 ips, images 1 à 120 ; `CAM_wide` avance de 0,8 m en 96 images (interpolation de Bézier) puis reste fixe ; repos stable pour les vignettes
 
 ## ACCEPTANCE
-- structure : 42 objets attendus, noms uniques, aucun `.001`, scène d'origine intacte, une seule scène ajoutée
-- mouvement : la position de `CAM_wide` change entre les images 1, 48 et 96 et reste identique entre 96 et 120
-- visuel : les 6 emballages lisibles au plan `CAM_pouches` (nom de la saveur, logo, mascotte) ; logo lisible et plein (lettres remplies, sans creux) au plan `CAM_logo` ; aucune surface rose ou sans texture ; ni écrêtage ni noir bouché
-- lumière : rendu vérifié à exposition fixe ; pas d'audit isolé (monde seul, clé seule) fait dans cette version rapide, à faire si le propriétaire garde ce décor
+- structure : 42 objets, noms uniques (aucun `.001`), la scène `Scene` d'origine intacte (Cube, Light, Camera) et une seule scène ajoutée
+- mouvement : position de `CAM_wide` aux images 1, 48, 96 et 120 : (0,95 ; −4,7 ; 2,35), (0,788 ; −4,331 ; 2,202), (0,62 ; −3,95 ; 2,05), (0,62 ; −3,95 ; 2,05). Elle bouge de 1 à 96 et reste fixe de 96 à 120.
+- visuel : les 3 plans vus en rendu Cycles (1600 × 900, 64 échantillons) et la vue en direct dans le Blender du propriétaire (EEVEE, sans repères). Les 6 emballages se lisent au plan `CAM_pouches` (saveur, logo, mascotte, badges) ; le logo est plein et net au plan `CAM_logo` ; aucune surface rose ou sans texture. Exposition (luminance moyenne 0,59 à 0,60, aucun pixel écrêté, aucun noir bouché).
+- lumière : contrôle à exposition fixe (`Standard`, 0) seulement. Pas d'audit par rôle (monde seul, clé seule, niveaux de gris) dans cette version rapide : à faire si le propriétaire garde ce décor.
+- non vérifié : un vrai rendu EEVEE (`bl_render`) de la scène ouverte ; seule la vue de la fenêtre 3D a été regardée. Le rendu Cycles vient de bpy 5.0 hors interface, pas du Blender 5.1 du propriétaire.
+- limites connues : les emballages sont ceux de la V1 (recréés d'après le brand book), pas un scan des vrais paquets ; le logo est extrudé depuis les tracés vectoriels du brand book. Le style est réaliste (matières physiques), pas encore la « gouache brillante ». Le fichier `.blend` n'est pas enregistré et les textures sont lues dans le dossier temporaire du système : à emballer (`Fichier > Données externes > Tout empaqueter`) si le propriétaire l'enregistre.

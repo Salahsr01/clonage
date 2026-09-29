@@ -30,7 +30,7 @@ def asset(rel):
     dst = os.path.join(CACHE, rel)
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     if not os.path.exists(dst) or os.path.getsize(dst) == 0:
-        urllib.request.urlretrieve(RAW + rel, dst)
+        urllib.request.urlretrieve(RAW + rel + '?v=1', dst)     # ?v=1 : evite une reponse 404 gardee en cache par GitHub
     return dst
 
 
@@ -511,9 +511,8 @@ def build():
     lo, mo, lw, lh = logo_curves(cH, svg, 0.66, 0.016, 0.0018, m_ink, m_red, root)
     lo.location.y, mo.location.y = -0.046, -0.046
     lo.location.z, mo.location.z = 0.0, 0.0
-    for sx in (-0.45, 0.45):
-        for sz in (-0.24, 0.24):
-            link(bpy.data.objects.new('PRP_sign_nail', sphere_mesh('PRP_sign_nail', 0.011, 12, 8)), cP, loc=(sx, -0.042, sz), mats=[m_metal], parent=root)
+    for k, (sx, sz) in enumerate([(-0.45, -0.24), (0.45, -0.24), (-0.45, 0.24), (0.45, 0.24)], start=1):
+        link(bpy.data.objects.new('PRP_sign_nail_%d' % k, sphere_mesh('PRP_sign_nail_%d' % k, 0.011, 12, 8)), cP, loc=(sx, -0.042, sz), mats=[m_metal], parent=root)
     post = boxes_mesh('PRP_sign_post', [((1.82, -0.06, 0.95), (0.075, 0.075, 1.9), 0, 0, 0)])
     o = link(bpy.data.objects.new('PRP_sign_post', post), cP, mats=[m_wpost])
     bevel(o, 0.006, 2)
