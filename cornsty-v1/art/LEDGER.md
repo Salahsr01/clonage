@@ -32,8 +32,11 @@ Solde de départ (2026-09-29, plan Ultra) : **4 000,1 crédits**.
 | Tripo H3.1 image → 3D | texturé, PBR | 9 |
 | Hunyuan3D v3 image → 3D | par défaut | 11 |
 | Meshy 7 image → 3D | texturé, PBR | 38 |
+| Seedance 2.5 (vidéo, image de départ) | 5 s, 720p, sans audio | 35 |
+| Grok Video 1.5 (vidéo, image de départ) | 5 s, 720p | 22,5 |
+| MiniMax H3 Max (vidéo, image de départ) | 5 s, 768p | 12,5 |
 
-Rigging, animations de la bibliothèque et AutoSprite : à chiffrer avec une image en entrée (le préchiffrage d'AutoSprite sans image a échoué).
+Rigging et animations de la bibliothèque : à chiffrer. AutoSprite : le préchiffrage échoue (avec ou sans image), à refaire au moment du test.
 
 ## Lot 1 — en attente d'accord : 8 crédits (le test de style ci-dessus vient avant)
 
