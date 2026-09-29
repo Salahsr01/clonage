@@ -49,7 +49,7 @@
 @keyframes eIn{from{opacity:0;translate:20px 10px;scale:.9}to{opacity:1;translate:0 0;scale:1}}
 
 /* ---------- tray (quick replies + input) */
-#tray{position:absolute;left:0;right:0;bottom:0;padding:8px 14px calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:9px;pointer-events:none;z-index:4}
+#tray{position:absolute;left:0;right:0;bottom:0;padding:8px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:9px;pointer-events:none;z-index:4}
 #tray>*{pointer-events:auto}
 #chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:860px;min-height:0}
 #chips.hidden{display:none}
@@ -81,13 +81,14 @@
 /* ---------- product spotlight */
 #spot{position:absolute;right:20px;top:calc(var(--ui-top) + 14px);width:340px;max-height:calc(100% - var(--ui-top) - var(--ui-bottom) - 28px);background:var(--paper);border:3px solid var(--ink);border-radius:24px;box-shadow:0 8px 0 var(--ink),var(--shadow);padding:16px;display:flex;flex-direction:column;gap:10px;overflow:auto;z-index:3;animation:spotIn .45s var(--ease)}
 #spot.out{animation:spotOut .3s ease-in forwards}
+#spot>*{flex-shrink:0}                      /* tall cards scroll instead of squeezing their picture */
 @keyframes spotIn{from{opacity:0;transform:translateX(40px) rotate(2deg)}to{opacity:1;transform:none}}
 @keyframes spotOut{to{opacity:0;transform:translateX(40px)}}
 .spot-x{position:absolute;right:10px;top:10px;width:34px;height:34px;border-radius:50%;background:#fff;border:2.5px solid var(--ink);display:grid;place-items:center;z-index:2}
 .spot-art{position:relative;border-radius:16px;display:grid;place-items:center;padding:16px 10px;background:var(--tint,#DFE5FB);border:2.5px solid var(--ink);overflow:hidden}
 .spot-art .swatch-bg{position:absolute;inset:0;opacity:.28}
-#spot[data-id=trio] .pick-art svg{height:104px;width:auto;margin-inline:auto}
-#spot[data-id=trio] .spot-art{padding:8px}#spot[data-id=trio] .spot-art .art-slot>svg{height:120px;width:auto}
+#spot[data-id=trio] .pick-art svg{height:96px;width:auto;margin-inline:auto}
+#spot[data-id=trio] .spot-art{padding:8px}#spot[data-id=trio] .spot-art .art-slot>svg{height:100px;width:auto}
 .spot-art svg.pouch-svg,.spot-art>svg:not(.swatch-bg){position:relative;height:min(280px,32vh);width:auto;max-width:100%;filter:drop-shadow(0 8px 0 rgba(38,35,43,.22));transform:rotate(-2deg)}
 .spot .spot-main{display:grid;gap:9px;min-width:0}
 .spot h3{font:400 38px/.95 var(--font-d);letter-spacing:.02em;text-transform:uppercase;margin:0}
@@ -96,6 +97,10 @@
 .tags{display:flex;flex-wrap:wrap;gap:6px}
 .tag{font:500 11px/1 var(--font-m);letter-spacing:.05em;text-transform:uppercase;padding:6px 9px;border:2px solid var(--ink);border-radius:999px;background:#fff}
 .spot-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+/* price + add button stay reachable when the card is taller than the screen (short laptops) */
+.spot-buy{position:sticky;bottom:0;z-index:2;display:grid;gap:10px;background:var(--paper);padding:10px 0 12px}
+.spot .perso{scroll-margin-bottom:150px}
+.spot-buy::before{content:"";position:absolute;left:0;right:0;top:-14px;height:14px;background:linear-gradient(transparent,var(--paper));pointer-events:none}
 .price{font:400 36px/1 var(--font-d);letter-spacing:.02em}
 .price s{font:500 14px var(--font-m);opacity:.5;margin-left:6px;white-space:nowrap}
 .taste{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font:500 11px var(--font-m);letter-spacing:.05em;text-transform:uppercase;align-items:center}
@@ -111,6 +116,7 @@
 .btn.ghost{box-shadow:none;background:transparent;border-color:rgba(38,35,43,.35)}
 .btn.ghost:hover{background:rgba(255,255,255,.7)}
 .btn.small{min-height:38px;padding:0 16px;font-size:13px;box-shadow:0 3px 0 var(--ink)}
+.btn.armed{background:var(--red);color:var(--cream)}
 .btn.big{min-height:58px;font-size:17px;padding:0 30px}
 .btn.block{width:100%}
 .btn[disabled]{opacity:.45;pointer-events:none}
@@ -139,6 +145,26 @@
 .switch::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:var(--ink);transition:transform .25s var(--ease)}
 .switch[aria-checked=true]{background:var(--teal)}.switch[aria-checked=true]::after{transform:translateX(24px)}
 body.has-modal #tray,body.has-modal #bubble{visibility:hidden}
+
+/* short desktop windows (e.g. 1366x768): keep the picture compact so options and buy bar stay in view */
+@media (min-width:821px) and (max-height:820px){
+  #spot{gap:8px;padding:14px}
+  .spot-art{padding:8px 10px}
+  .spot-art svg.pouch-svg,.spot-art>svg:not(.swatch-bg){height:min(200px,26vh)}
+  .spot-art .jersey-both svg{max-height:min(150px,20vh)}
+  .spot-art .stack-svg,.spot-art .stickers-svg,.spot-art .cap-svg,.spot-art .plush-svg,.spot-art .tin-svg,.spot-art .giftbox-svg{max-height:min(150px,20vh)}
+  #spot[data-id=trio] .spot-art .art-slot>svg{height:min(90px,12vh)}
+  .spot h3{font-size:32px}
+  .spot .btn.big{min-height:48px}
+}
+/* the Box picker: one row of six small pouches unless the window is tall enough for a 3x2 grid */
+@media (min-width:821px) and (max-height:1000px){
+  #spot[data-id=trio] .picks{grid-template-columns:repeat(6,1fr);gap:5px}
+  #spot[data-id=trio] .pick{padding:3px 3px 2px;border-radius:9px;border-width:2px}
+  #spot[data-id=trio] .pick-art svg{width:100%;height:auto}
+  #spot[data-id=trio] .pick-n{right:1px;top:1px;font-size:10px;padding:1px 5px}
+  #spot[data-id=trio] .hint{display:none}
+}
 
 /* ---------- responsive */
 @media (max-width:980px){

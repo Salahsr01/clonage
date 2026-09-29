@@ -25,7 +25,11 @@
     const el = m.el;
     $$('[data-a]', el).forEach((b) => b.addEventListener('click', () => {
       C.audio.click(); const a = b.dataset.a;
-      if (a === 'reset') { if (confirm('Effacer panier, Club et commandes ?')) { C.store.reset(); UI.toast('Démo remise à zéro'); m.close(); location.reload(); } return; }
+      if (a === 'reset') {
+        // two-step confirmation inside the page (native confirm() is blocked in framed / embedded viewers)
+        if (!b.classList.contains('armed')) { b.classList.add('armed'); b.textContent = 'Sûr ? Clique encore'; clearTimeout(b._t); b._t = setTimeout(() => { b.classList.remove('armed'); b.textContent = 'Réinitialiser'; }, 4000); return; }
+        C.store.reset(); UI.toast('Démo remise à zéro'); m.close(); setTimeout(() => location.reload(), 350); return;
+      }
       m.close();
       if (a === 'quick') C.catalog.quick(); else if (a === 'club') C.club.open(); else if (a === 'orders') C.club.open('history'); else if (a === 'faq') faq(); else if (a === 'about') about();
     }));
@@ -92,5 +96,6 @@
     if (C.intro.simple) setTimeout(() => C.catalog.quick(), 900);
     window.__cornsty = C;
   };
-  document.addEventListener('DOMContentLoaded', () => C.boot());
+  // boot now if the document is already parsed (script injected late by a host page), otherwise wait for it
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => C.boot()); else C.boot();
 })(window.Cornsty);

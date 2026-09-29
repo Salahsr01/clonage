@@ -25,12 +25,14 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--cream);color:var(--ink);font-family:var(--font-b);-webkit-font-smoothing:antialiased;overflow:hidden;overscroll-behavior:none}
-body{position:fixed;inset:0;-webkit-tap-highlight-color:transparent}
+/* sky above / sand below: only visible behind a phone notch or home indicator (the app itself stops short of them) */
+body{position:fixed;inset:0;-webkit-tap-highlight-color:transparent;background:linear-gradient(#8FA3F0 0 50%,#EBDAAE 50% 100%)}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
 button:focus-visible,[tabindex]:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset:3px;border-radius:8px}
 [hidden]{display:none!important}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-#app{position:fixed;inset:0;overflow:hidden;background:#BFCBF8}
+/* the app stops short of a notch / home indicator (all insets are 0 in a normal desktop or phone browser) */
+#app{position:fixed;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px);left:env(safe-area-inset-left,0px);right:env(safe-area-inset-right,0px);overflow:hidden;background:#BFCBF8}
 .stage{position:absolute;inset:0;overflow:hidden;background:linear-gradient(#8FA3F0,#BFCBF8 55%,#F3EEDF)}
 .layer{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;pointer-events:none}
 .layer.main{pointer-events:auto}
@@ -126,7 +128,7 @@ button:focus-visible,[tabindex]:focus-visible,input:focus-visible,a:focus-visibl
 @keyframes eIn{from{opacity:0;translate:20px 10px;scale:.9}to{opacity:1;translate:0 0;scale:1}}
 
 /* ---------- tray (quick replies + input) */
-#tray{position:absolute;left:0;right:0;bottom:0;padding:8px 14px calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:9px;pointer-events:none;z-index:4}
+#tray{position:absolute;left:0;right:0;bottom:0;padding:8px 14px 12px;display:flex;flex-direction:column;align-items:center;gap:9px;pointer-events:none;z-index:4}
 #tray>*{pointer-events:auto}
 #chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:860px;min-height:0}
 #chips.hidden{display:none}
@@ -158,13 +160,14 @@ button:focus-visible,[tabindex]:focus-visible,input:focus-visible,a:focus-visibl
 /* ---------- product spotlight */
 #spot{position:absolute;right:20px;top:calc(var(--ui-top) + 14px);width:340px;max-height:calc(100% - var(--ui-top) - var(--ui-bottom) - 28px);background:var(--paper);border:3px solid var(--ink);border-radius:24px;box-shadow:0 8px 0 var(--ink),var(--shadow);padding:16px;display:flex;flex-direction:column;gap:10px;overflow:auto;z-index:3;animation:spotIn .45s var(--ease)}
 #spot.out{animation:spotOut .3s ease-in forwards}
+#spot>*{flex-shrink:0}                      /* tall cards scroll instead of squeezing their picture */
 @keyframes spotIn{from{opacity:0;transform:translateX(40px) rotate(2deg)}to{opacity:1;transform:none}}
 @keyframes spotOut{to{opacity:0;transform:translateX(40px)}}
 .spot-x{position:absolute;right:10px;top:10px;width:34px;height:34px;border-radius:50%;background:#fff;border:2.5px solid var(--ink);display:grid;place-items:center;z-index:2}
 .spot-art{position:relative;border-radius:16px;display:grid;place-items:center;padding:16px 10px;background:var(--tint,#DFE5FB);border:2.5px solid var(--ink);overflow:hidden}
 .spot-art .swatch-bg{position:absolute;inset:0;opacity:.28}
-#spot[data-id=trio] .pick-art svg{height:104px;width:auto;margin-inline:auto}
-#spot[data-id=trio] .spot-art{padding:8px}#spot[data-id=trio] .spot-art .art-slot>svg{height:120px;width:auto}
+#spot[data-id=trio] .pick-art svg{height:96px;width:auto;margin-inline:auto}
+#spot[data-id=trio] .spot-art{padding:8px}#spot[data-id=trio] .spot-art .art-slot>svg{height:100px;width:auto}
 .spot-art svg.pouch-svg,.spot-art>svg:not(.swatch-bg){position:relative;height:min(280px,32vh);width:auto;max-width:100%;filter:drop-shadow(0 8px 0 rgba(38,35,43,.22));transform:rotate(-2deg)}
 .spot .spot-main{display:grid;gap:9px;min-width:0}
 .spot h3{font:400 38px/.95 var(--font-d);letter-spacing:.02em;text-transform:uppercase;margin:0}
@@ -173,6 +176,10 @@ button:focus-visible,[tabindex]:focus-visible,input:focus-visible,a:focus-visibl
 .tags{display:flex;flex-wrap:wrap;gap:6px}
 .tag{font:500 11px/1 var(--font-m);letter-spacing:.05em;text-transform:uppercase;padding:6px 9px;border:2px solid var(--ink);border-radius:999px;background:#fff}
 .spot-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+/* price + add button stay reachable when the card is taller than the screen (short laptops) */
+.spot-buy{position:sticky;bottom:0;z-index:2;display:grid;gap:10px;background:var(--paper);padding:10px 0 12px}
+.spot .perso{scroll-margin-bottom:150px}
+.spot-buy::before{content:"";position:absolute;left:0;right:0;top:-14px;height:14px;background:linear-gradient(transparent,var(--paper));pointer-events:none}
 .price{font:400 36px/1 var(--font-d);letter-spacing:.02em}
 .price s{font:500 14px var(--font-m);opacity:.5;margin-left:6px;white-space:nowrap}
 .taste{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font:500 11px var(--font-m);letter-spacing:.05em;text-transform:uppercase;align-items:center}
@@ -188,6 +195,7 @@ button:focus-visible,[tabindex]:focus-visible,input:focus-visible,a:focus-visibl
 .btn.ghost{box-shadow:none;background:transparent;border-color:rgba(38,35,43,.35)}
 .btn.ghost:hover{background:rgba(255,255,255,.7)}
 .btn.small{min-height:38px;padding:0 16px;font-size:13px;box-shadow:0 3px 0 var(--ink)}
+.btn.armed{background:var(--red);color:var(--cream)}
 .btn.big{min-height:58px;font-size:17px;padding:0 30px}
 .btn.block{width:100%}
 .btn[disabled]{opacity:.45;pointer-events:none}
@@ -216,6 +224,26 @@ button:focus-visible,[tabindex]:focus-visible,input:focus-visible,a:focus-visibl
 .switch::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:var(--ink);transition:transform .25s var(--ease)}
 .switch[aria-checked=true]{background:var(--teal)}.switch[aria-checked=true]::after{transform:translateX(24px)}
 body.has-modal #tray,body.has-modal #bubble{visibility:hidden}
+
+/* short desktop windows (e.g. 1366x768): keep the picture compact so options and buy bar stay in view */
+@media (min-width:821px) and (max-height:820px){
+  #spot{gap:8px;padding:14px}
+  .spot-art{padding:8px 10px}
+  .spot-art svg.pouch-svg,.spot-art>svg:not(.swatch-bg){height:min(200px,26vh)}
+  .spot-art .jersey-both svg{max-height:min(150px,20vh)}
+  .spot-art .stack-svg,.spot-art .stickers-svg,.spot-art .cap-svg,.spot-art .plush-svg,.spot-art .tin-svg,.spot-art .giftbox-svg{max-height:min(150px,20vh)}
+  #spot[data-id=trio] .spot-art .art-slot>svg{height:min(90px,12vh)}
+  .spot h3{font-size:32px}
+  .spot .btn.big{min-height:48px}
+}
+/* the Box picker: one row of six small pouches unless the window is tall enough for a 3x2 grid */
+@media (min-width:821px) and (max-height:1000px){
+  #spot[data-id=trio] .picks{grid-template-columns:repeat(6,1fr);gap:5px}
+  #spot[data-id=trio] .pick{padding:3px 3px 2px;border-radius:9px;border-width:2px}
+  #spot[data-id=trio] .pick-art svg{width:100%;height:auto}
+  #spot[data-id=trio] .pick-n{right:1px;top:1px;font-size:10px;padding:1px 5px}
+  #spot[data-id=trio] .hint{display:none}
+}
 
 /* ---------- responsive */
 @media (max-width:980px){
@@ -1056,7 +1084,7 @@ select{border:2.5px solid var(--ink);border-radius:12px;background:#fff;height:4
     const wm = A.wordmark;
     return [
       `<symbol id="s-quat" viewBox="0 0 301 301"><path d="${A.quat.d}"/></symbol>`,
-      `<symbol id="s-word" viewBox="0 0 ${f(wm.w)} ${f(wm.h)}">${wm.letters.map((p) => `<path d="${p.d}"/>`).join('')}<path class="wm-q" d="${wm.mark.d}" fill="var(--wm-q,#26232b)"/></symbol>`,
+      `<symbol id="s-word" viewBox="0 0 ${f(wm.w)} ${f(wm.h)}">${wm.letters.map((p) => `<path d="${p.d}"/>`).join('')}<path class="wm-q" d="${wm.mark.d}" style="fill:var(--wm-q,#26232b)"/></symbol>`,
       sym('s-gullMid', A.gullMid), sym('s-gullLong', A.gullLong), sym('s-gullSide', A.gullSide),
       sym('s-ring', A.poseRing, { ring: K.blue }), sym('s-surf', A.poseSurf), sym('s-board', A.poseBoard),
       `<symbol id="s-icon" viewBox="-190 -6 380 420" overflow="visible">${D.filled(A.icon.parts)}</symbol>`,
@@ -2835,7 +2863,7 @@ ${SE.poster()}
       const name = U.el('input', { type: 'text', maxlength: p.personalize.maxName, placeholder: 'Ton nom', 'aria-label': 'Nom dans le dos', autocomplete: 'off' });
       const num = U.el('input', { type: 'text', inputmode: 'numeric', maxlength: 2, placeholder: '01', 'aria-label': 'Numéro', autocomplete: 'off' });
       fields.append(name, num);
-      perso.firstChild.addEventListener('change', (e) => { fields.hidden = !e.target.checked; if (!e.target.checked) { delete st.opts.name; delete st.opts.num; name.value = num.value = ''; } else { name.value = C.store.state.prefs.name || ''; st.opts.name = name.value; st.opts.num = ''; } C.audio.tick(); changed(); });
+      perso.firstChild.addEventListener('change', (e) => { fields.hidden = !e.target.checked; if (!fields.hidden) requestAnimationFrame(() => fields.scrollIntoView({ block: 'end', behavior: U.reduced() ? 'auto' : 'smooth' })); if (!e.target.checked) { delete st.opts.name; delete st.opts.num; name.value = num.value = ''; } else { name.value = C.store.state.prefs.name || ''; st.opts.name = name.value; st.opts.num = ''; } C.audio.tick(); changed(); });
       name.addEventListener('input', () => { name.value = name.value.replace(/[^A-Za-zÀ-ÿ' \-]/g, '').slice(0, p.personalize.maxName); st.opts.name = name.value; changed(); });
       num.addEventListener('input', () => { num.value = num.value.replace(/\D/g, '').slice(0, 2); st.opts.num = num.value; changed(); });
       root.append(U.el('div', { class: 'opt-label eyebrow' }, 'Taille'), sizes, perso, fields);
@@ -2865,8 +2893,10 @@ ${SE.poster()}
   ${tasteBars(p)}
   <div class="tags">${(p.tags || []).slice(0, 4).map((t) => `<span class="tag">${U.esc(t)}</span>`).join('')}</div>
   <div class="opts-slot"></div>
-  <div class="spot-row"><div class="price"></div><div class="qty-slot"></div></div>
-  <button class="btn red big block add">Ajouter au panier</button>
+  <div class="spot-buy">
+    <div class="spot-row"><div class="price"></div><div class="qty-slot"></div></div>
+    <button class="btn red big block add">Ajouter au panier</button>
+  </div>
   <button class="btn ghost small block more">Tout savoir sur ce produit</button>
 </div>`;
     U.$('.qty-slot', el).append(st.qtyEl); U.$('.opts-slot', el).append(st.el);
@@ -3415,28 +3445,35 @@ ${SE.poster()}
   }
 
   /* ---------------- step 3 : payment */
+  // demo mode only ever accepts well-known PAYMENT-PROVIDER TEST numbers: a real card can never be "used" here
+  const TEST_CARDS = new Set(['4242424242424242', '4000056655665556', '4111111111111111', '5555555555554444', '2223003122003222', '5200828282828210', '378282246310005', '371449635398431', '6011111111111117', '4000000000000002']);
+  // window.print() does nothing inside a sandboxed frame (embedded viewers): don't show a dead button there
+  const canPrint = () => { try { return !window.CORNSTY_NOPRINT && window.top === window.self; } catch (e) { return false; } };
   const luhn = (s) => { let sum = 0, alt = false; for (let i = s.length - 1; i >= 0; i--) { let n = +s[i]; if (alt) { n *= 2; if (n > 9) n -= 9; } sum += n; alt = !alt; } return s.length >= 13 && sum % 10 === 0; };
   function renderPay(body) {
     const q = C.store.quote(), F = S.form, custom = typeof window.CORNSTY_PAY === 'function';
+    const cardui = custom ? '' : `<div class="cardui"><div class="f"><label for="f-card">Numéro de carte <small>(carte de test)</small></label><input id="f-card" name="card" inputmode="numeric" autocomplete="off" placeholder="4242 4242 4242 4242" value="${U.esc(F.card)}"></div>
+  <div class="grid3"><div class="f"><label for="f-exp">Expiration</label><input id="f-exp" name="exp" inputmode="numeric" autocomplete="off" placeholder="MM/AA" maxlength="5" value="${U.esc(F.exp)}"></div><div class="f"><label for="f-cvc">CVC</label><input id="f-cvc" name="cvc" inputmode="numeric" autocomplete="off" placeholder="123" maxlength="4" value="${U.esc(F.cvc)}"></div><div class="f"><label for="f-cname">Nom sur la carte</label><input id="f-cname" name="cname" autocomplete="off" value="${U.esc(F.cname || F.first + ' ' + F.last)}"></div></div></div>`;
     body.innerHTML = head('Paiement', 3) + `
 <div class="dr-scroll form">
   <div class="recap"><b>${U.esc(F.first)} ${U.esc(F.last)}</b><span>${q.shipOpt.id === 'pickup' ? 'Retrait au kiosque' : U.esc(F.addr + ', ' + F.zip + ' ' + F.city)}</span><button class="link" data-a="prev">Modifier</button></div>
-  ${custom ? `<p class="demo ok">Paiement sécurisé par ton prestataire (branché via <code>window.CORNSTY_PAY</code>).</p>` : `<p class="demo"><b>Mode démo</b> — aucun paiement réel. Carte de test : <code>4242 4242 4242 4242</code>, date future, CVC au choix. <button class="link" data-a="fill">Remplir pour moi</button></p>`}
-  <div class="cardui"><div class="f"><label for="f-card">Numéro de carte</label><input id="f-card" name="card" inputmode="numeric" autocomplete="cc-number" placeholder="1234 1234 1234 1234" value="${U.esc(F.card)}"></div>
-  <div class="grid3"><div class="f"><label for="f-exp">Expiration</label><input id="f-exp" name="exp" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/AA" maxlength="5" value="${U.esc(F.exp)}"></div><div class="f"><label for="f-cvc">CVC</label><input id="f-cvc" name="cvc" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="4" value="${U.esc(F.cvc)}"></div><div class="f"><label for="f-cname">Nom sur la carte</label><input id="f-cname" name="cname" autocomplete="cc-name" value="${U.esc(F.cname || F.first + ' ' + F.last)}"></div></div></div>
+  ${custom ? `<p class="demo ok">Paiement sécurisé par ton prestataire : aucune donnée de carte ne passe par ce site. Clique sur « Payer » pour ouvrir le paiement.</p>` : `<p class="demo"><b>Mode démo</b> — aucun paiement réel, <b>ne saisis jamais une vraie carte</b>. Carte de test : <code>4242 4242 4242 4242</code>, date future, CVC au choix. <button class="link" data-a="fill">Remplir pour moi</button></p>`}
+  ${cardui}
   <p class="err" role="alert" hidden></p>
   ${totalsHtml(q, true)}
   <p class="eyebrow">En payant, tu acceptes les CGV (à publier — voir README) · Tes données restent sur ton appareil dans cette démo.</p>
 </div>
 <div class="dr-foot"><button class="btn ghost" data-a="prev2">Retour</button><button class="btn red big" data-a="pay"><span>Payer ${money(q.total)}</span></button></div>`;
-    const inp = (n) => $('[name=' + n + ']', body);
-    inp('card').addEventListener('input', (e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 19); e.target.value = v.replace(/(.{4})/g, '$1 ').trim(); F.card = e.target.value; });
-    inp('exp').addEventListener('input', (e) => { let v = e.target.value.replace(/\D/g, '').slice(0, 4); if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2); e.target.value = v; F.exp = v; });
-    inp('cvc').addEventListener('input', (e) => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4); F.cvc = e.target.value; });
-    inp('cname').addEventListener('input', (e) => { F.cname = e.target.value; });
+    if (!custom) {
+      const inp = (n) => $('[name=' + n + ']', body);
+      inp('card').addEventListener('input', (e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 19); e.target.value = v.replace(/(.{4})/g, '$1 ').trim(); F.card = e.target.value; });
+      inp('exp').addEventListener('input', (e) => { let v = e.target.value.replace(/\D/g, '').slice(0, 4); if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2); e.target.value = v; F.exp = v; });
+      inp('cvc').addEventListener('input', (e) => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4); F.cvc = e.target.value; });
+      inp('cname').addEventListener('input', (e) => { F.cname = e.target.value; });
+      const fill = $('[data-a=fill]', body); fill && fill.addEventListener('click', () => { C.audio.tick(); F.card = '4242 4242 4242 4242'; F.exp = '12/34'; F.cvc = '123'; F.cname = F.first + ' ' + F.last; inp('card').value = F.card; inp('exp').value = F.exp; inp('cvc').value = F.cvc; inp('cname').value = F.cname; });
+    }
     $('[data-a=prev]', body).addEventListener('click', () => { C.audio.click(); S.step = 2; render(); });
     $('[data-a=prev2]', body).addEventListener('click', () => { C.audio.click(); S.step = 2; render(); });
-    const fill = $('[data-a=fill]', body); fill && fill.addEventListener('click', () => { C.audio.tick(); F.card = '4242 4242 4242 4242'; F.exp = '12/34'; F.cvc = '123'; F.cname = F.first + ' ' + F.last; inp('card').value = F.card; inp('exp').value = F.exp; inp('cvc').value = F.cvc; inp('cname').value = F.cname; });
     $('[data-a=pay]', body).addEventListener('click', () => S.pay(body));
   }
 
@@ -3446,6 +3483,7 @@ ${SE.poster()}
     await new Promise((r) => setTimeout(r, 1300 / (U.speed || 1)));
     const num = (draft.card || '').replace(/\s/g, '');
     if (!luhn(num)) return { ok: false, error: 'Ce numéro de carte n’a pas l’air valide (test : 4242 4242 4242 4242).' };
+    if (!TEST_CARDS.has(num)) return { ok: false, error: 'Mode démo : seules les cartes de test sont acceptées (4242 4242 4242 4242). Ne saisis jamais une vraie carte ici.' };
     const [mm, yy] = (draft.exp || '').split('/').map(Number);
     const now = new Date(), y = 2000 + (yy || 0);
     if (!mm || mm < 1 || mm > 12 || y < now.getFullYear() || (y === now.getFullYear() && mm < now.getMonth() + 1)) return { ok: false, error: 'La date d’expiration est passée ou mal écrite (MM/AA).' };
@@ -3459,11 +3497,13 @@ ${SE.poster()}
     err.hidden = true;
     const custom = typeof window.CORNSTY_PAY === 'function';
     if (!custom) {
-      if (!luhn(F.card.replace(/\s/g, ''))) { err.hidden = false; err.textContent = 'Ce numéro de carte n’a pas l’air valide (test : 4242 4242 4242 4242).'; $('[name=card]', body).focus(); C.audio.squawk(0.3); return; }
+      const num = F.card.replace(/\s/g, '');
+      if (!luhn(num) || !TEST_CARDS.has(num)) { err.hidden = false; err.textContent = luhn(num) ? 'Mode démo : seules les cartes de test sont acceptées (4242 4242 4242 4242). Ne saisis jamais une vraie carte ici.' : 'Ce numéro de carte n’a pas l’air valide (test : 4242 4242 4242 4242).'; $('[name=card]', body).focus(); C.audio.squawk(0.3); return; }
     }
     S._busy = true; btn.disabled = true; btn.classList.add('loading'); btn.firstElementChild.textContent = 'Paiement en cours…';
     C.store.prefs({ customer: { first: F.first, last: F.last, email: F.email, phone: F.phone, addr: F.addr, addr2: F.addr2, zip: F.zip, city: F.city, news: F.news }, name: C.store.state.prefs.name || F.first });
-    const draft = { amount: q.total, currency: 'EUR', lines: q.lines.map((l) => ({ id: l.id, name: l.name, qty: l.qty, unit: l.unit, opts: l.opts })), customer: { first: F.first, last: F.last, email: F.email, phone: F.phone, address: { line1: F.addr, line2: F.addr2, zip: F.zip, city: F.city, country: 'FR' } }, shipping: q.shipOpt.id, card: F.card, exp: F.exp, cvc: F.cvc };
+    const draft = { amount: q.total, currency: 'EUR', lines: q.lines.map((l) => ({ id: l.id, name: l.name, qty: l.qty, unit: l.unit, opts: l.opts })), customer: { first: F.first, last: F.last, email: F.email, phone: F.phone, address: { line1: F.addr, line2: F.addr2, zip: F.zip, city: F.city, country: 'FR' } }, shipping: q.shipOpt.id };
+    if (!custom) Object.assign(draft, { card: F.card, exp: F.exp, cvc: F.cvc });   // raw card data exists only in demo mode, never for a real provider
     let res; try { res = await S.processPayment(draft); } catch (e) { res = { ok: false, error: 'Le paiement a échoué (' + (e.message || 'erreur') + '). Réessaie.' }; }
     if (!res || !res.ok) { S._busy = false; btn.disabled = false; btn.classList.remove('loading'); btn.firstElementChild.textContent = 'Payer ' + money(q.total); err.hidden = false; err.textContent = (res && res.error) || 'Paiement refusé.'; C.audio.squawk(0.4); C.scene.gull.act('shake'); return; }
     const order = C.store.placeOrder({ customer: { first: F.first, last: F.last, email: F.email, phone: F.phone, address: q.shipOpt.id === 'pickup' ? null : { line1: F.addr, line2: F.addr2, zip: F.zip, city: F.city } }, payment: { method: res.method || 'Carte', ref: res.ref, demo: !!res.demo } });
@@ -3558,11 +3598,11 @@ ${SE.poster()}
   <div class="gain"><div class="gain-i">${D.stampOn()}</div><div><b>+${e.points} points</b> · +${e.stamps} tampon${e.stamps > 1 ? 's' : ''}${e.welcome ? ` · +${e.welcome} de bienvenue` : ''}${e.cards ? ` · <b class="hot-t">${e.cards} carte${e.cards > 1 ? 's' : ''} pleine${e.cards > 1 ? 's' : ''} : pochon offert !</b>` : ''}<br><small>Palier ${U.esc(tier.name)}${C.store.club.next() ? ' · encore ' + C.store.club.progress().need + ' pts avant ' + U.esc(C.store.club.next().name) : ' · tu es au sommet'}</small></div></div>
   ${e.badges.length ? `<div class="newbadges">${e.badges.map((id) => { const b = C.store.club.badgeDefs.find((x) => x.id === id); return `<div class="nb">${D.badge(b)}<span><b>${U.esc(b.name)}</b><small>+${b.pts} pts</small></span></div>`; }).join('')}</div>` : ''}
   ${S.receipt(order)}
-  <div class="done-cta"><button class="btn red big" data-a="again">Retour au comptoir</button><button class="btn blue" data-a="club">Voir mon Club</button><button class="btn ghost" data-a="print">Imprimer le ticket</button></div>
+  <div class="done-cta"><button class="btn red big" data-a="again">Retour au comptoir</button><button class="btn blue" data-a="club">Voir mon Club</button>${canPrint() ? '<button class="btn ghost" data-a="print">Imprimer le ticket</button>' : ''}</div>
 </div>`;
     $('[data-a=again]', body).addEventListener('click', () => { C.audio.click(); S.close(); C.bus.emit('ui:station', 'counter'); C.bus.emit('order:done', order); });
     $('[data-a=club]', body).addEventListener('click', () => { C.audio.click(); S.close(); C.bus.emit('ui:club'); });
-    $('[data-a=print]', body).addEventListener('click', () => { document.body.classList.add('printing'); window.print(); setTimeout(() => document.body.classList.remove('printing'), 500); });
+    const pb = $('[data-a=print]', body); pb && pb.addEventListener('click', () => { document.body.classList.add('printing'); window.print(); setTimeout(() => document.body.classList.remove('printing'), 500); });
     const rc = $('.receipt', body); if (rc && rc.animate && !U.reduced()) rc.animate([{ clipPath: 'inset(0 0 100% 0)', transform: 'translateY(-14px)' }, { clipPath: 'inset(0 0 0 0)', transform: 'none' }], { duration: 1400, easing: 'cubic-bezier(.3,.8,.3,1)' });
     // live tracker (accelerated demo)
     clearInterval(S._trk); S._trk = setInterval(() => { const t = $('.track', body); if (!t || !document.body.contains(t)) { clearInterval(S._trk); return; } t.outerHTML = S.trackerHtml(order); }, 5000);
@@ -3672,7 +3712,7 @@ ${SE.poster()}
   };
   CL.bind_friends = (root) => {
     $('[data-a=copy]', root).addEventListener('click', async () => { const ok = await U.copy(C.store.club.code()); UI.toast(ok ? 'Code copié' : 'Copie impossible', { kind: 'good' }); C.audio.coin(); });
-    $('[data-a=share]', root).addEventListener('click', async () => { const t = `Viens goûter Cornsty : utilise mon code ${C.store.club.code()} pour ${C.cfg.club.referral.reward} points offerts. ${location.origin}${location.pathname}?ref=${C.store.club.code()}`; if (navigator.share) { try { await navigator.share({ title: 'Cornsty', text: t }); } catch (e) { /* cancelled */ } } else { await U.copy(t); UI.toast('Message copié', { kind: 'good' }); } });
+    $('[data-a=share]', root).addEventListener('click', async () => { const t = `Viens goûter Cornsty : utilise mon code ${C.store.club.code()} pour ${C.cfg.club.referral.reward} points offerts. ${location.origin}${location.pathname}?ref=${C.store.club.code()}`; let done = false; if (navigator.share) { try { await navigator.share({ title: 'Cornsty', text: t }); done = true; } catch (e) { done = !!(e && e.name === 'AbortError'); /* cancelled by the visitor = nothing more to do; any other refusal falls back to copying */ } } if (!done) { const ok = await U.copy(t); UI.toast(ok ? 'Message copié' : 'Copie impossible : sélectionne le code et copie-le', { kind: ok ? 'good' : undefined }); } });
     const use = $('[data-a=use]', root); use && use.addEventListener('click', () => { const r = C.store.club.useReferral($('#refin', root).value); const msg = $('#refmsg', root); msg.textContent = r.msg; msg.className = 'promo-msg ' + (r.ok ? 'ok' : 'bad'); if (r.ok) { C.audio.chime(); C.fx.confetti({ count: 40 }); } else C.audio.squawk(0.3); });
   };
 
@@ -3767,12 +3807,17 @@ ${SE.poster()}
     const letters = A.wordmark.letters.map((l) => new Path2D(l.d));
     const fl = C.data.byId(C.chat.ctx.last && C.data.byId(C.chat.ctx.last).kind === 'pouch' ? C.chat.ctx.last : 'cheddar');
 
+    // ctx.roundRect is missing in older Safari / Firefox: same path built by hand
+    const rrect = (x, y, w, h, r) => {
+      if (ctx.roundRect) return ctx.roundRect(x, y, w, h, r);
+      ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+    };
     const pouch = (x, y) => {
       const w = 96, h = 132, cc = fl.colors;
       ctx.save(); ctx.translate(x - w / 2, y);
-      ctx.fillStyle = cc.base; ctx.strokeStyle = K.ink; ctx.lineWidth = 4; ctx.beginPath(); ctx.roundRect(0, 0, w, h, 10); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = cc.base; ctx.strokeStyle = K.ink; ctx.lineWidth = 4; ctx.beginPath(); rrect(0, 0, w, h, 10); ctx.fill(); ctx.stroke();
       ctx.fillStyle = K.blue; ctx.fillRect(3, 8, w - 6, 8);
-      ctx.save(); ctx.beginPath(); ctx.roundRect(3, 3, w - 6, h - 6, 8); ctx.clip();
+      ctx.save(); ctx.beginPath(); rrect(3, 3, w - 6, h - 6, 8); ctx.clip();
       ctx.fillStyle = '#F3F3F6'; ctx.fillRect(0, 44, w, 52);
       ctx.restore();
       ctx.save(); ctx.translate(8, 20); const s = (w - 16) / 866; ctx.scale(s, s); ctx.fillStyle = K.cream; ctx.strokeStyle = cc.dark; ctx.lineWidth = 14; ctx.lineJoin = 'round'; letters.forEach((p) => { ctx.stroke(p); ctx.fill(p); }); ctx.restore();
@@ -4291,7 +4336,11 @@ ${SE.poster()}
     const el = m.el;
     $$('[data-a]', el).forEach((b) => b.addEventListener('click', () => {
       C.audio.click(); const a = b.dataset.a;
-      if (a === 'reset') { if (confirm('Effacer panier, Club et commandes ?')) { C.store.reset(); UI.toast('Démo remise à zéro'); m.close(); location.reload(); } return; }
+      if (a === 'reset') {
+        // two-step confirmation inside the page (native confirm() is blocked in framed / embedded viewers)
+        if (!b.classList.contains('armed')) { b.classList.add('armed'); b.textContent = 'Sûr ? Clique encore'; clearTimeout(b._t); b._t = setTimeout(() => { b.classList.remove('armed'); b.textContent = 'Réinitialiser'; }, 4000); return; }
+        C.store.reset(); UI.toast('Démo remise à zéro'); m.close(); setTimeout(() => location.reload(), 350); return;
+      }
       m.close();
       if (a === 'quick') C.catalog.quick(); else if (a === 'club') C.club.open(); else if (a === 'orders') C.club.open('history'); else if (a === 'faq') faq(); else if (a === 'about') about();
     }));
@@ -4358,7 +4407,8 @@ ${SE.poster()}
     if (C.intro.simple) setTimeout(() => C.catalog.quick(), 900);
     window.__cornsty = C;
   };
-  document.addEventListener('DOMContentLoaded', () => C.boot());
+  // boot now if the document is already parsed (script injected late by a host page), otherwise wait for it
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => C.boot()); else C.boot();
 })(window.Cornsty);
 </script>
 </body>

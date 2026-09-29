@@ -94,7 +94,8 @@ Puis `node tools/build.js` pour régénérer `dist/cornsty.html`.
 Le site expose trois **crochets** (aucun n'est obligatoire) :
 
 ```js
-// 1) PAIEMENT — remplace le formulaire de démo. Doit renvoyer { ok:true, ref, method } ou { ok:false, error }.
+// 1) PAIEMENT — remplace le formulaire de démo (le formulaire de carte disparaît : AUCUNE donnée de carte ne transite par le site).
+//    Doit renvoyer { ok:true, ref, method } ou { ok:false, error }.
 window.CORNSTY_PAY = async ({ amount, currency, lines, customer, shipping }) => {
   // exemple Stripe : créer une session côté serveur, rediriger, ou confirmer un PaymentIntent (Stripe Elements)
   const r = await fetch('/api/checkout', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ lines, customer, shipping }) });
@@ -108,7 +109,7 @@ window.CORNSTY_ORDER = (order) => fetch('/api/orders', { method:'POST', headers:
 window.CORNSTY_LLM = async ({ text, name, cart, history, catalog }) => 'La réponse de la Mouette';
 ```
 
-⚠️ **Ne jamais** traiter ni stocker un numéro de carte : en production utilise les champs hébergés de ton prestataire (Stripe Elements, etc.) — le formulaire de carte fourni est uniquement une démo (carte test `4242 4242 4242 4242`).
+⚠️ **Ne jamais** traiter ni stocker un numéro de carte : en production utilise les champs hébergés de ton prestataire (Stripe Elements / Checkout, etc.). Le formulaire de carte fourni n'existe qu'en mode démo, n'accepte **que des numéros de carte de test** (`4242 4242 4242 4242`…) et disparaît dès que `CORNSTY_PAY` est défini.
 Les **points, tampons, parrainages et abonnement** sont calculés dans le navigateur : pour qu'ils soient *réels* (multi-appareils, anti-triche), il faut les recalculer/stocker côté serveur — c'est le rôle du crochet `CORNSTY_ORDER`.
 
 ## À valider avant la mise en ligne
@@ -118,7 +119,7 @@ Ces éléments sont des **placeholders** (issus du brand book ou de ma rédactio
 - **Nutrition / allergènes / ingrédients** : les « 4 g lipides · 12 g protéines » viennent du visuel du book ; ingrédients et allergènes sont rédigés à titre d'exemple.
 - **TVA** (5,5 % alimentaire / 20 % merch), **prix**, **délais et frais de livraison**, **politique de retour**, **CGV / mentions légales / RGPD** (aucune page légale n'est fournie).
 - **Consentement e-mail** : la case « recevoir les drops » est décochée par défaut (RGPD) mais aucun e-mail n'est envoyé par ce site.
-- **Adresse et téléphone** du ticket : ceux du mock-up du book (24 rue des Martyrs).
+- **Adresse, téléphone, e-mail, domaine, Instagram** : l'adresse du ticket vient du mock-up du book (24 rue des Martyrs) ; le téléphone, l'e-mail `salut@cornsty.fr` et le domaine `cornsty.fr` sont **des exemples de ma part** — à remplacer dans `cfg.brand` (`src/js/data.js`) et dans le `<noscript>` de `index.html`.
 - Sur les étiquettes j'ai écrit **« GOURMET POPCORN »** (le book dit « GOURMENT ») ; le texte « 1 pochon offert tous les 10 pochons » remplace le « WITH & PURCHASE » du visuel de carte.
 - Le **suivi de commande** et le **parrainage** sont simulés.
 
@@ -127,4 +128,5 @@ Ces éléments sont des **placeholders** (issus du brand book ou de ma rédactio
 - Les tracés viennent du PDF (`tools/extract-brand.py`, PyMuPDF) : chaque trait du dessin est une forme séparée, ce qui permet de **rigger** la Mouette (mâchoire, chapeau, lunettes, ailes) sans jamais la redessiner.
 - Les motifs des 6 saveurs ont été **mesurés** sur les tuiles du book (périodes, angles, couleurs) puis reconstruits en géométrie.
 - La caméra ne fait que **glisser** entre les stations (le rendu vectoriel reste net) ; le pop-corn est un canvas 2D avec sprites, tas par hauteur-de-colonnes.
-- Testé avec Chromium (Playwright) : parcours complet, mobile 390×844, persistance, aucune erreur console. Safari/Firefox : non testés dans cet environnement.
+- Polices embarquées (licence SIL OFL) : League Gothic, Inter, IBM Plex Mono, Yellowtail (script du maillot). Aucune n'est chargée depuis un CDN.
+- Testé avec Chromium (Playwright, rendu logiciel) : parcours complet conversation → show → caisse → ticket → tampons, bureau 1366×768 / 1440×900 / 1920×1080, mobile 360 et 390 px, `prefers-reduced-motion`, « version simple », `localStorage` indisponible (le site marche, sans mémoire), crochets `CORNSTY_PAY` / `CORNSTY_ORDER`, les 23 sons synthétisés, `dist/cornsty.html` sans aucune requête externe — aucune erreur console. **Safari et Firefox n'ont pas pu être testés dans cet environnement**, et les performances sur de vrais appareils (surtout mobiles d'entrée de gamme) restent à vérifier.

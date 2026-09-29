@@ -91,7 +91,7 @@
   };
   CL.bind_friends = (root) => {
     $('[data-a=copy]', root).addEventListener('click', async () => { const ok = await U.copy(C.store.club.code()); UI.toast(ok ? 'Code copié' : 'Copie impossible', { kind: 'good' }); C.audio.coin(); });
-    $('[data-a=share]', root).addEventListener('click', async () => { const t = `Viens goûter Cornsty : utilise mon code ${C.store.club.code()} pour ${C.cfg.club.referral.reward} points offerts. ${location.origin}${location.pathname}?ref=${C.store.club.code()}`; if (navigator.share) { try { await navigator.share({ title: 'Cornsty', text: t }); } catch (e) { /* cancelled */ } } else { await U.copy(t); UI.toast('Message copié', { kind: 'good' }); } });
+    $('[data-a=share]', root).addEventListener('click', async () => { const t = `Viens goûter Cornsty : utilise mon code ${C.store.club.code()} pour ${C.cfg.club.referral.reward} points offerts. ${location.origin}${location.pathname}?ref=${C.store.club.code()}`; let done = false; if (navigator.share) { try { await navigator.share({ title: 'Cornsty', text: t }); done = true; } catch (e) { done = !!(e && e.name === 'AbortError'); /* cancelled by the visitor = nothing more to do; any other refusal falls back to copying */ } } if (!done) { const ok = await U.copy(t); UI.toast(ok ? 'Message copié' : 'Copie impossible : sélectionne le code et copie-le', { kind: ok ? 'good' : undefined }); } });
     const use = $('[data-a=use]', root); use && use.addEventListener('click', () => { const r = C.store.club.useReferral($('#refin', root).value); const msg = $('#refmsg', root); msg.textContent = r.msg; msg.className = 'promo-msg ' + (r.ok ? 'ok' : 'bad'); if (r.ok) { C.audio.chime(); C.fx.confetti({ count: 40 }); } else C.audio.squawk(0.3); });
   };
 

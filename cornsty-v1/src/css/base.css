@@ -7,12 +7,14 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--cream);color:var(--ink);font-family:var(--font-b);-webkit-font-smoothing:antialiased;overflow:hidden;overscroll-behavior:none}
-body{position:fixed;inset:0;-webkit-tap-highlight-color:transparent}
+/* sky above / sand below: only visible behind a phone notch or home indicator (the app itself stops short of them) */
+body{position:fixed;inset:0;-webkit-tap-highlight-color:transparent;background:linear-gradient(#8FA3F0 0 50%,#EBDAAE 50% 100%)}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
 button:focus-visible,[tabindex]:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset:3px;border-radius:8px}
 [hidden]{display:none!important}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-#app{position:fixed;inset:0;overflow:hidden;background:#BFCBF8}
+/* the app stops short of a notch / home indicator (all insets are 0 in a normal desktop or phone browser) */
+#app{position:fixed;top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px);left:env(safe-area-inset-left,0px);right:env(safe-area-inset-right,0px);overflow:hidden;background:#BFCBF8}
 .stage{position:absolute;inset:0;overflow:hidden;background:linear-gradient(#8FA3F0,#BFCBF8 55%,#F3EEDF)}
 .layer{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;pointer-events:none}
 .layer.main{pointer-events:auto}

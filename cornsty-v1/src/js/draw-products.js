@@ -16,7 +16,7 @@
     const wm = A.wordmark;
     return [
       `<symbol id="s-quat" viewBox="0 0 301 301"><path d="${A.quat.d}"/></symbol>`,
-      `<symbol id="s-word" viewBox="0 0 ${f(wm.w)} ${f(wm.h)}">${wm.letters.map((p) => `<path d="${p.d}"/>`).join('')}<path class="wm-q" d="${wm.mark.d}" fill="var(--wm-q,#26232b)"/></symbol>`,
+      `<symbol id="s-word" viewBox="0 0 ${f(wm.w)} ${f(wm.h)}">${wm.letters.map((p) => `<path d="${p.d}"/>`).join('')}<path class="wm-q" d="${wm.mark.d}" style="fill:var(--wm-q,#26232b)"/></symbol>`,
       sym('s-gullMid', A.gullMid), sym('s-gullLong', A.gullLong), sym('s-gullSide', A.gullSide),
       sym('s-ring', A.poseRing, { ring: K.blue }), sym('s-surf', A.poseSurf), sym('s-board', A.poseBoard),
       `<symbol id="s-icon" viewBox="-190 -6 380 420" overflow="visible">${D.filled(A.icon.parts)}</symbol>`,

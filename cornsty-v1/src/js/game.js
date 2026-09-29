@@ -21,12 +21,17 @@
     const letters = A.wordmark.letters.map((l) => new Path2D(l.d));
     const fl = C.data.byId(C.chat.ctx.last && C.data.byId(C.chat.ctx.last).kind === 'pouch' ? C.chat.ctx.last : 'cheddar');
 
+    // ctx.roundRect is missing in older Safari / Firefox: same path built by hand
+    const rrect = (x, y, w, h, r) => {
+      if (ctx.roundRect) return ctx.roundRect(x, y, w, h, r);
+      ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+    };
     const pouch = (x, y) => {
       const w = 96, h = 132, cc = fl.colors;
       ctx.save(); ctx.translate(x - w / 2, y);
-      ctx.fillStyle = cc.base; ctx.strokeStyle = K.ink; ctx.lineWidth = 4; ctx.beginPath(); ctx.roundRect(0, 0, w, h, 10); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = cc.base; ctx.strokeStyle = K.ink; ctx.lineWidth = 4; ctx.beginPath(); rrect(0, 0, w, h, 10); ctx.fill(); ctx.stroke();
       ctx.fillStyle = K.blue; ctx.fillRect(3, 8, w - 6, 8);
-      ctx.save(); ctx.beginPath(); ctx.roundRect(3, 3, w - 6, h - 6, 8); ctx.clip();
+      ctx.save(); ctx.beginPath(); rrect(3, 3, w - 6, h - 6, 8); ctx.clip();
       ctx.fillStyle = '#F3F3F6'; ctx.fillRect(0, 44, w, 52);
       ctx.restore();
       ctx.save(); ctx.translate(8, 20); const s = (w - 16) / 866; ctx.scale(s, s); ctx.fillStyle = K.cream; ctx.strokeStyle = cc.dark; ctx.lineWidth = 14; ctx.lineJoin = 'round'; letters.forEach((p) => { ctx.stroke(p); ctx.fill(p); }); ctx.restore();

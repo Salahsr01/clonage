@@ -201,28 +201,35 @@
   }
 
   /* ---------------- step 3 : payment */
+  // demo mode only ever accepts well-known PAYMENT-PROVIDER TEST numbers: a real card can never be "used" here
+  const TEST_CARDS = new Set(['4242424242424242', '4000056655665556', '4111111111111111', '5555555555554444', '2223003122003222', '5200828282828210', '378282246310005', '371449635398431', '6011111111111117', '4000000000000002']);
+  // window.print() does nothing inside a sandboxed frame (embedded viewers): don't show a dead button there
+  const canPrint = () => { try { return !window.CORNSTY_NOPRINT && window.top === window.self; } catch (e) { return false; } };
   const luhn = (s) => { let sum = 0, alt = false; for (let i = s.length - 1; i >= 0; i--) { let n = +s[i]; if (alt) { n *= 2; if (n > 9) n -= 9; } sum += n; alt = !alt; } return s.length >= 13 && sum % 10 === 0; };
   function renderPay(body) {
     const q = C.store.quote(), F = S.form, custom = typeof window.CORNSTY_PAY === 'function';
+    const cardui = custom ? '' : `<div class="cardui"><div class="f"><label for="f-card">Numéro de carte <small>(carte de test)</small></label><input id="f-card" name="card" inputmode="numeric" autocomplete="off" placeholder="4242 4242 4242 4242" value="${U.esc(F.card)}"></div>
+  <div class="grid3"><div class="f"><label for="f-exp">Expiration</label><input id="f-exp" name="exp" inputmode="numeric" autocomplete="off" placeholder="MM/AA" maxlength="5" value="${U.esc(F.exp)}"></div><div class="f"><label for="f-cvc">CVC</label><input id="f-cvc" name="cvc" inputmode="numeric" autocomplete="off" placeholder="123" maxlength="4" value="${U.esc(F.cvc)}"></div><div class="f"><label for="f-cname">Nom sur la carte</label><input id="f-cname" name="cname" autocomplete="off" value="${U.esc(F.cname || F.first + ' ' + F.last)}"></div></div></div>`;
     body.innerHTML = head('Paiement', 3) + `
 <div class="dr-scroll form">
   <div class="recap"><b>${U.esc(F.first)} ${U.esc(F.last)}</b><span>${q.shipOpt.id === 'pickup' ? 'Retrait au kiosque' : U.esc(F.addr + ', ' + F.zip + ' ' + F.city)}</span><button class="link" data-a="prev">Modifier</button></div>
-  ${custom ? `<p class="demo ok">Paiement sécurisé par ton prestataire (branché via <code>window.CORNSTY_PAY</code>).</p>` : `<p class="demo"><b>Mode démo</b> — aucun paiement réel. Carte de test : <code>4242 4242 4242 4242</code>, date future, CVC au choix. <button class="link" data-a="fill">Remplir pour moi</button></p>`}
-  <div class="cardui"><div class="f"><label for="f-card">Numéro de carte</label><input id="f-card" name="card" inputmode="numeric" autocomplete="cc-number" placeholder="1234 1234 1234 1234" value="${U.esc(F.card)}"></div>
-  <div class="grid3"><div class="f"><label for="f-exp">Expiration</label><input id="f-exp" name="exp" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/AA" maxlength="5" value="${U.esc(F.exp)}"></div><div class="f"><label for="f-cvc">CVC</label><input id="f-cvc" name="cvc" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="4" value="${U.esc(F.cvc)}"></div><div class="f"><label for="f-cname">Nom sur la carte</label><input id="f-cname" name="cname" autocomplete="cc-name" value="${U.esc(F.cname || F.first + ' ' + F.last)}"></div></div></div>
+  ${custom ? `<p class="demo ok">Paiement sécurisé par ton prestataire : aucune donnée de carte ne passe par ce site. Clique sur « Payer » pour ouvrir le paiement.</p>` : `<p class="demo"><b>Mode démo</b> — aucun paiement réel, <b>ne saisis jamais une vraie carte</b>. Carte de test : <code>4242 4242 4242 4242</code>, date future, CVC au choix. <button class="link" data-a="fill">Remplir pour moi</button></p>`}
+  ${cardui}
   <p class="err" role="alert" hidden></p>
   ${totalsHtml(q, true)}
   <p class="eyebrow">En payant, tu acceptes les CGV (à publier — voir README) · Tes données restent sur ton appareil dans cette démo.</p>
 </div>
 <div class="dr-foot"><button class="btn ghost" data-a="prev2">Retour</button><button class="btn red big" data-a="pay"><span>Payer ${money(q.total)}</span></button></div>`;
-    const inp = (n) => $('[name=' + n + ']', body);
-    inp('card').addEventListener('input', (e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 19); e.target.value = v.replace(/(.{4})/g, '$1 ').trim(); F.card = e.target.value; });
-    inp('exp').addEventListener('input', (e) => { let v = e.target.value.replace(/\D/g, '').slice(0, 4); if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2); e.target.value = v; F.exp = v; });
-    inp('cvc').addEventListener('input', (e) => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4); F.cvc = e.target.value; });
-    inp('cname').addEventListener('input', (e) => { F.cname = e.target.value; });
+    if (!custom) {
+      const inp = (n) => $('[name=' + n + ']', body);
+      inp('card').addEventListener('input', (e) => { const v = e.target.value.replace(/\D/g, '').slice(0, 19); e.target.value = v.replace(/(.{4})/g, '$1 ').trim(); F.card = e.target.value; });
+      inp('exp').addEventListener('input', (e) => { let v = e.target.value.replace(/\D/g, '').slice(0, 4); if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2); e.target.value = v; F.exp = v; });
+      inp('cvc').addEventListener('input', (e) => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4); F.cvc = e.target.value; });
+      inp('cname').addEventListener('input', (e) => { F.cname = e.target.value; });
+      const fill = $('[data-a=fill]', body); fill && fill.addEventListener('click', () => { C.audio.tick(); F.card = '4242 4242 4242 4242'; F.exp = '12/34'; F.cvc = '123'; F.cname = F.first + ' ' + F.last; inp('card').value = F.card; inp('exp').value = F.exp; inp('cvc').value = F.cvc; inp('cname').value = F.cname; });
+    }
     $('[data-a=prev]', body).addEventListener('click', () => { C.audio.click(); S.step = 2; render(); });
     $('[data-a=prev2]', body).addEventListener('click', () => { C.audio.click(); S.step = 2; render(); });
-    const fill = $('[data-a=fill]', body); fill && fill.addEventListener('click', () => { C.audio.tick(); F.card = '4242 4242 4242 4242'; F.exp = '12/34'; F.cvc = '123'; F.cname = F.first + ' ' + F.last; inp('card').value = F.card; inp('exp').value = F.exp; inp('cvc').value = F.cvc; inp('cname').value = F.cname; });
     $('[data-a=pay]', body).addEventListener('click', () => S.pay(body));
   }
 
@@ -232,6 +239,7 @@
     await new Promise((r) => setTimeout(r, 1300 / (U.speed || 1)));
     const num = (draft.card || '').replace(/\s/g, '');
     if (!luhn(num)) return { ok: false, error: 'Ce numéro de carte n’a pas l’air valide (test : 4242 4242 4242 4242).' };
+    if (!TEST_CARDS.has(num)) return { ok: false, error: 'Mode démo : seules les cartes de test sont acceptées (4242 4242 4242 4242). Ne saisis jamais une vraie carte ici.' };
     const [mm, yy] = (draft.exp || '').split('/').map(Number);
     const now = new Date(), y = 2000 + (yy || 0);
     if (!mm || mm < 1 || mm > 12 || y < now.getFullYear() || (y === now.getFullYear() && mm < now.getMonth() + 1)) return { ok: false, error: 'La date d’expiration est passée ou mal écrite (MM/AA).' };
@@ -245,11 +253,13 @@
     err.hidden = true;
     const custom = typeof window.CORNSTY_PAY === 'function';
     if (!custom) {
-      if (!luhn(F.card.replace(/\s/g, ''))) { err.hidden = false; err.textContent = 'Ce numéro de carte n’a pas l’air valide (test : 4242 4242 4242 4242).'; $('[name=card]', body).focus(); C.audio.squawk(0.3); return; }
+      const num = F.card.replace(/\s/g, '');
+      if (!luhn(num) || !TEST_CARDS.has(num)) { err.hidden = false; err.textContent = luhn(num) ? 'Mode démo : seules les cartes de test sont acceptées (4242 4242 4242 4242). Ne saisis jamais une vraie carte ici.' : 'Ce numéro de carte n’a pas l’air valide (test : 4242 4242 4242 4242).'; $('[name=card]', body).focus(); C.audio.squawk(0.3); return; }
     }
     S._busy = true; btn.disabled = true; btn.classList.add('loading'); btn.firstElementChild.textContent = 'Paiement en cours…';
     C.store.prefs({ customer: { first: F.first, last: F.last, email: F.email, phone: F.phone, addr: F.addr, addr2: F.addr2, zip: F.zip, city: F.city, news: F.news }, name: C.store.state.prefs.name || F.first });
-    const draft = { amount: q.total, currency: 'EUR', lines: q.lines.map((l) => ({ id: l.id, name: l.name, qty: l.qty, unit: l.unit, opts: l.opts })), customer: { first: F.first, last: F.last, email: F.email, phone: F.phone, address: { line1: F.addr, line2: F.addr2, zip: F.zip, city: F.city, country: 'FR' } }, shipping: q.shipOpt.id, card: F.card, exp: F.exp, cvc: F.cvc };
+    const draft = { amount: q.total, currency: 'EUR', lines: q.lines.map((l) => ({ id: l.id, name: l.name, qty: l.qty, unit: l.unit, opts: l.opts })), customer: { first: F.first, last: F.last, email: F.email, phone: F.phone, address: { line1: F.addr, line2: F.addr2, zip: F.zip, city: F.city, country: 'FR' } }, shipping: q.shipOpt.id };
+    if (!custom) Object.assign(draft, { card: F.card, exp: F.exp, cvc: F.cvc });   // raw card data exists only in demo mode, never for a real provider
     let res; try { res = await S.processPayment(draft); } catch (e) { res = { ok: false, error: 'Le paiement a échoué (' + (e.message || 'erreur') + '). Réessaie.' }; }
     if (!res || !res.ok) { S._busy = false; btn.disabled = false; btn.classList.remove('loading'); btn.firstElementChild.textContent = 'Payer ' + money(q.total); err.hidden = false; err.textContent = (res && res.error) || 'Paiement refusé.'; C.audio.squawk(0.4); C.scene.gull.act('shake'); return; }
     const order = C.store.placeOrder({ customer: { first: F.first, last: F.last, email: F.email, phone: F.phone, address: q.shipOpt.id === 'pickup' ? null : { line1: F.addr, line2: F.addr2, zip: F.zip, city: F.city } }, payment: { method: res.method || 'Carte', ref: res.ref, demo: !!res.demo } });
@@ -344,11 +354,11 @@
   <div class="gain"><div class="gain-i">${D.stampOn()}</div><div><b>+${e.points} points</b> · +${e.stamps} tampon${e.stamps > 1 ? 's' : ''}${e.welcome ? ` · +${e.welcome} de bienvenue` : ''}${e.cards ? ` · <b class="hot-t">${e.cards} carte${e.cards > 1 ? 's' : ''} pleine${e.cards > 1 ? 's' : ''} : pochon offert !</b>` : ''}<br><small>Palier ${U.esc(tier.name)}${C.store.club.next() ? ' · encore ' + C.store.club.progress().need + ' pts avant ' + U.esc(C.store.club.next().name) : ' · tu es au sommet'}</small></div></div>
   ${e.badges.length ? `<div class="newbadges">${e.badges.map((id) => { const b = C.store.club.badgeDefs.find((x) => x.id === id); return `<div class="nb">${D.badge(b)}<span><b>${U.esc(b.name)}</b><small>+${b.pts} pts</small></span></div>`; }).join('')}</div>` : ''}
   ${S.receipt(order)}
-  <div class="done-cta"><button class="btn red big" data-a="again">Retour au comptoir</button><button class="btn blue" data-a="club">Voir mon Club</button><button class="btn ghost" data-a="print">Imprimer le ticket</button></div>
+  <div class="done-cta"><button class="btn red big" data-a="again">Retour au comptoir</button><button class="btn blue" data-a="club">Voir mon Club</button>${canPrint() ? '<button class="btn ghost" data-a="print">Imprimer le ticket</button>' : ''}</div>
 </div>`;
     $('[data-a=again]', body).addEventListener('click', () => { C.audio.click(); S.close(); C.bus.emit('ui:station', 'counter'); C.bus.emit('order:done', order); });
     $('[data-a=club]', body).addEventListener('click', () => { C.audio.click(); S.close(); C.bus.emit('ui:club'); });
-    $('[data-a=print]', body).addEventListener('click', () => { document.body.classList.add('printing'); window.print(); setTimeout(() => document.body.classList.remove('printing'), 500); });
+    const pb = $('[data-a=print]', body); pb && pb.addEventListener('click', () => { document.body.classList.add('printing'); window.print(); setTimeout(() => document.body.classList.remove('printing'), 500); });
     const rc = $('.receipt', body); if (rc && rc.animate && !U.reduced()) rc.animate([{ clipPath: 'inset(0 0 100% 0)', transform: 'translateY(-14px)' }, { clipPath: 'inset(0 0 0 0)', transform: 'none' }], { duration: 1400, easing: 'cubic-bezier(.3,.8,.3,1)' });
     // live tracker (accelerated demo)
     clearInterval(S._trk); S._trk = setInterval(() => { const t = $('.track', body); if (!t || !document.body.contains(t)) { clearInterval(S._trk); return; } t.outerHTML = S.trackerHtml(order); }, 5000);

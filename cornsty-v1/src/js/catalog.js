@@ -54,7 +54,7 @@
       const name = U.el('input', { type: 'text', maxlength: p.personalize.maxName, placeholder: 'Ton nom', 'aria-label': 'Nom dans le dos', autocomplete: 'off' });
       const num = U.el('input', { type: 'text', inputmode: 'numeric', maxlength: 2, placeholder: '01', 'aria-label': 'Numéro', autocomplete: 'off' });
       fields.append(name, num);
-      perso.firstChild.addEventListener('change', (e) => { fields.hidden = !e.target.checked; if (!e.target.checked) { delete st.opts.name; delete st.opts.num; name.value = num.value = ''; } else { name.value = C.store.state.prefs.name || ''; st.opts.name = name.value; st.opts.num = ''; } C.audio.tick(); changed(); });
+      perso.firstChild.addEventListener('change', (e) => { fields.hidden = !e.target.checked; if (!fields.hidden) requestAnimationFrame(() => fields.scrollIntoView({ block: 'end', behavior: U.reduced() ? 'auto' : 'smooth' })); if (!e.target.checked) { delete st.opts.name; delete st.opts.num; name.value = num.value = ''; } else { name.value = C.store.state.prefs.name || ''; st.opts.name = name.value; st.opts.num = ''; } C.audio.tick(); changed(); });
       name.addEventListener('input', () => { name.value = name.value.replace(/[^A-Za-zÀ-ÿ' \-]/g, '').slice(0, p.personalize.maxName); st.opts.name = name.value; changed(); });
       num.addEventListener('input', () => { num.value = num.value.replace(/\D/g, '').slice(0, 2); st.opts.num = num.value; changed(); });
       root.append(U.el('div', { class: 'opt-label eyebrow' }, 'Taille'), sizes, perso, fields);
@@ -84,8 +84,10 @@
   ${tasteBars(p)}
   <div class="tags">${(p.tags || []).slice(0, 4).map((t) => `<span class="tag">${U.esc(t)}</span>`).join('')}</div>
   <div class="opts-slot"></div>
-  <div class="spot-row"><div class="price"></div><div class="qty-slot"></div></div>
-  <button class="btn red big block add">Ajouter au panier</button>
+  <div class="spot-buy">
+    <div class="spot-row"><div class="price"></div><div class="qty-slot"></div></div>
+    <button class="btn red big block add">Ajouter au panier</button>
+  </div>
   <button class="btn ghost small block more">Tout savoir sur ce produit</button>
 </div>`;
     U.$('.qty-slot', el).append(st.qtyEl); U.$('.opts-slot', el).append(st.el);
