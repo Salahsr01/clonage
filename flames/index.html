@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Flammes animées</title>
+  <style>
+    :root { color-scheme: dark; }
+
+    html, body { height: 100%; margin: 0; }
+
+    body {
+      overflow: hidden;
+      background-color: #000;
+      /* same black -> violet fade as the reference sheet */
+      background-image: linear-gradient(180deg,
+        #000 0%, #000 50%, #08050e 63%, #10081f 72.5%, #190e2e 81.5%, #22133e 90.6%, #2c1951 100%);
+      font: 500 12px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #scene, #sparks, #glows {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    #sparks, #glows { pointer-events: none; }
+
+    /* horizontal swipes reach the page (they blow on the flames); pinch-zoom still works */
+    #scene { touch-action: pan-y pinch-zoom; }
+
+    /* one soft light per flame, behind the drawing; only opacity and scale change */
+    .glow {
+      position: absolute;
+      left: 0;
+      top: 0;
+      border-radius: 50%;
+      will-change: transform, opacity;
+    }
+
+    .flame { cursor: pointer; }
+
+    .hint {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: max(16px, env(safe-area-inset-bottom));
+      margin: 0;
+      text-align: center;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, .34);
+      pointer-events: none;
+      transition: opacity .8s ease;
+    }
+
+    .hint.gone { opacity: 0; }
+  </style>
+</head>
+<body>
+  <div id="glows" aria-hidden="true"></div>
+  <svg id="scene" role="img" aria-label="Six flammes animées : quatre rouges, une bleue et une turquoise">
+    <defs id="defs">
+      <!-- halo around the inner flame, and its brighter edge -->
+      <filter id="halo" filterUnits="userSpaceOnUse" x="-52" y="-102" width="104" height="100" color-interpolation-filters="sRGB">
+        <feGaussianBlur stdDeviation="1.3"/>
+      </filter>
+      <filter id="rim" filterUnits="userSpaceOnUse" x="-52" y="-102" width="104" height="100" color-interpolation-filters="sRGB">
+        <feGaussianBlur stdDeviation="0.8"/>
+      </filter>
+    </defs>
+    <g id="world"></g>
+  </svg>
+  <canvas id="sparks" aria-hidden="true"></canvas>
+  <p class="hint" id="hint">Survole ou touche une flamme</p>
+
+  <script>
+  /**
+   * flames — six animated fire icons.
+   *
+   * The outlines and the inner flames were vectorised from the reference sheet.
+   * Each frame the shapes are warped (sway, stretch, travelling wave) and redrawn
+   * as concentric colour bands; a canvas layer adds the rising embers.
+   *
+   * Options:  ?amp=1.5   motion amplitude (default 1)
+   *           ?sparks=0  no embers
+   * Keys:     Space      pause / resume
+   */
+  (() => {
+    'use strict';
+
+    // -----------------------------------------------------------------------
+    // Options
+    // -----------------------------------------------------------------------
+
+    const params = new URLSearchParams(location.search);
+    const num = (key, fallback) => (params.has(key) && Number.isFinite(+params.get(key)) ? +params.get(key) : fallback);
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const AMP = num('amp', 1) * (reduceMotion ? 0.25 : 1);
+    const SPARKS = num('sparks', 1) > 0 && !reduceMotion;
+
+    // -----------------------------------------------------------------------
+    // Data — shapes are in flame-local units (1 unit = 1 px of the reference
+    // sheet), origin at the bottom centre of the flame, y grows downwards.
+    // -----------------------------------------------------------------------
+
+    // `body` is the outline, `core` the inner flame. `twin` is shared by the three bottom flames.
+    const SHAPES = {
+      drop: {
+        body: 'M22.3 -119.5C20.1 -116.8 18.5 -113.6 16.6 -110.7C12.6 -104.5 7.4 -98.7 1.7 -93.9C-12.5 -82 -36.1 -70.4 -41.3 -51.2C-47.2 -29.5 -31.9 -7.1 -11 -1.2C-0.5 1.7 11.3 0.3 21.3 -3.9C27.5 -6.6 34 -11 37.9 -16.7C51.5 -36.9 35.1 -59.4 29.1 -78.9C25 -92.1 24.6 -105.9 22.3 -119.5Z',
+        core: 'M8.5 -70.6C4.9 -67.3 1.8 -63.5 -1.7 -60.1C-8.1 -53.8 -16.8 -48.1 -17.5 -38.3C-17.6 -37.3 -17.7 -36.3 -17.6 -35.3C-15.3 -20.4 8.2 -17.6 14.1 -30.8C17.8 -39 14.7 -45.1 12.5 -53C10.8 -58.8 10.1 -64.8 8.5 -70.6Z',
+      },
+      curl: {
+        body: 'M45 -58.3C42.7 -57.1 40.3 -55.7 37.8 -55.1C26.5 -52.8 20.2 -63 19.1 -72.8C18.3 -80.4 22.4 -87.4 24.9 -94.3C27.2 -100.9 27.7 -111.8 25.2 -118.3C20.6 -112 20.7 -110 13.8 -104.4C-3.1 -90.7 -26.2 -84 -38.9 -65.3C-42 -60.7 -43.7 -55.6 -44.9 -50.2C-49.1 -30.5 -39.1 -10 -19.7 -3C-14.4 -1 -8.9 -0.6 -3.2 -0.6C1.7 -0.6 6.9 -0.9 11.6 -2.2C27.4 -6.5 39.2 -20.4 43.4 -35.8C45.3 -42.6 47.1 -51.6 45 -58.3Z',
+        core: 'M1.8 -66.8C-3.4 -64.7 -8 -61.2 -12.3 -57.7C-18.7 -52.5 -22.5 -45.2 -21.4 -36.9C-20.8 -32.7 -17.8 -28 -14.1 -25.8C-9.9 -23.3 -3.2 -22.7 1.3 -24.7C6.7 -27.1 13.6 -35.2 16 -40.4C11.5 -39.5 6.9 -39.6 2.4 -39.7C1.1 -39.7 -1.5 -39.4 -2.3 -40.7C-3.2 -42.1 -2.2 -45.8 -2.1 -47.5C-1.7 -50.3 -1.4 -53.3 -0.7 -56.1C0.1 -59.8 1.7 -63.1 1.8 -66.8Z',
+      },
+      wave: {
+        body: 'M-24.1 -79.9C-28.6 -77.8 -31.8 -74.1 -35 -70.3C-47.6 -54.5 -50.3 -32.9 -37.4 -16.3C-23.8 1.2 2.2 4.7 21 -5.9C27.9 -9.7 33.8 -14.8 38.1 -21.5C42.5 -28.4 45.7 -37.7 45.2 -45.8C43.6 -44.1 42.2 -42.1 40.2 -40.9C36.9 -38.7 31.3 -38.4 28.7 -42C25.9 -45.9 28.2 -51.5 30.1 -55.3C33.9 -63 37.6 -68.6 35.7 -77.6C32.6 -92.1 18.1 -97 13.7 -103.7C9.9 -109.6 11.8 -113.7 11.5 -119.8C-1.1 -114.8 -7.8 -101.3 -4.5 -88.1C-3.2 -82.8 1.8 -77 0 -71.4C-2.1 -64.8 -11.4 -62.1 -16.9 -66.2C-21.4 -69.6 -22.6 -74.7 -24.1 -79.9Z',
+        core: 'M-12.2 -35.5C-15.9 -39.8 -17.4 -44.6 -20.3 -47.9C-20.5 -48.2 -20.9 -48.3 -21.1 -48.5C-22.4 -39.4 -24 -31.1 -17.4 -23.4C-16.7 -22.6 -16 -21.5 -15.1 -20.8C-14.1 -19.9 -10.5 -19.6 -9.1 -19.2C1.5 -16.3 12.4 -21.1 15.7 -32C15.3 -32 15 -32.2 14.6 -32.2C11.7 -32.2 8.9 -30.4 5.9 -30.2C5.6 -30.2 5.3 -30.5 4.9 -30.4C4.9 -30.8 4.6 -31.1 4.6 -31.4C4.6 -33 5.1 -34.7 5.3 -36.2C5.8 -42.5 6.4 -48.9 7 -55.2C2.2 -51.3 -2.9 -46.1 -7 -41.5C-8.8 -39.5 -10.2 -37.3 -12.2 -35.5Z',
+      },
+      twin: {
+        body: 'M-23.9 -78.7C-30.9 -73.1 -36.5 -65.9 -40.1 -57.7C-43.1 -51.1 -44.4 -43.6 -43.9 -36.4C-43.5 -31.8 -42.8 -27.3 -41 -23C-33.3 -4.7 -10.8 2.8 7.7 -0.3C11.6 -0.9 15.3 -2.3 18.8 -3.7C31.9 -9 41.7 -19.6 43.8 -33.8C44.4 -37.8 44.6 -41.2 43.4 -45.1C40.3 -42.6 37.7 -39.4 33.6 -38.5C27 -36.9 19.8 -42.5 21.2 -49.5C24.1 -63.4 41.5 -64.2 38.6 -83.4C38.2 -86 36.9 -88.5 35.6 -90.7C34 -93.5 32.2 -95.7 29.6 -97.7C28 -96 26.4 -93.7 24.3 -92.6C18.3 -89.5 10.4 -93.6 8.8 -100.1C7.2 -106.6 9.5 -112.6 10.6 -118.8C7.5 -118.3 5.5 -117 2.9 -115.4C-7.5 -109.2 -9.2 -100.7 -5.2 -89.9C-3.6 -85.5 0.1 -80.3 -1 -75.4C-2.7 -68.3 -12.4 -65 -18.2 -69.3C-21.3 -71.6 -22.1 -75.4 -23.9 -78.7Z',
+        core: 'M4.6 -56.8C1 -51.6 -1.7 -44.6 -6 -40.2C-8.2 -42.9 -9.5 -46.1 -11 -49.2C-13.2 -45 -13.4 -38.7 -14.6 -36.7C-14.8 -36.4 -15.2 -36.3 -15.4 -36C-18.1 -38 -20.5 -40.5 -23.1 -42.6C-23.1 -36.1 -20.6 -28.3 -15.4 -24C-11.3 -20.7 -3.4 -18.7 1.8 -20.1C5 -20.9 9.9 -24.9 11.9 -27.4C12.7 -28.4 13.1 -29.5 13.6 -30.6C9.8 -31.1 8.6 -30.3 5.1 -30.8C3.7 -38.7 6 -49.2 4.6 -56.8Z',
+      },
+    };
+
+    // Colours sampled from the sheet, then tuned by comparing renders of this page
+    // with it. Each ring is 10 colours from tip to base along a gradient axis tilted
+    // by 12 degrees; `core` runs top to bottom. `bands` are the widths (px from the
+    // outline) of the concentric rings, `halo` and `rim` colour the glow around the
+    // inner flame.
+    const THEMES = {
+      fire: {
+        bands: { A: 4, B: 7.75, C: 11.1, C2: 12.95 },
+        rings: {
+          A : ['#f32be2', '#f32ae3', '#f62fec', '#f441db', '#f34471', '#f5604c', '#f49d47', '#fcff5e', '#fbfc94', '#fcfbd4'],
+          B : ['#fe44fc', '#fe44fc', '#fe4afa', '#ff68f2', '#fe7694', '#fe9f5a', '#fef860', '#fdfe5b', '#fdfe99', '#fefed7'],
+          C : ['#f62db6', '#f62db6', '#f62db6', '#f83fa1', '#fb4d6c', '#fa5546', '#f9a543', '#fef753', '#fefa80', '#fefbb0'],
+          C2: ['#b3166a', '#b3166a', '#b3166a', '#e92770', '#f93951', '#fd353a', '#f77b3b', '#f4ad3f', '#f9d868', '#f9d868'],
+          D : ['#bb2367', '#bb2367', '#bb2367', '#bb2367', '#ea2a4c', '#f7313a', '#fb5639', '#fe8d3c', '#febd52', '#febd52'],
+        },
+        core: ['#feff6c', '#fbed4a', '#fcea73', '#fcf696', '#fcfea6', '#fdfcb0'],
+        halo: '#ff7432',
+        rim: '#e7a34a',
+        glow: '255,70,140',
+        sparks: ['#ff4fd8', '#ff7a59', '#ffb347', '#ffe86b'],
+      },
+      blue: {
+        bands: { A: 4.3, B: 7.6, C: 11.1, C2: 14.3 },
+        rings: {
+          A : ['#f5c2fa', '#f5c2fa', '#f3bcfc', '#f4affb', '#f29ff9', '#f5b4f9', '#f8adfa', '#f9b7f8', '#fbcefb', '#f8fafd'],
+          B : ['#9f99f7', '#9f99f7', '#8296f8', '#7f8ff7', '#9e7ef9', '#a694fb', '#d59bfc', '#eaa6ff', '#e4cbff', '#a5f9fb'],
+          C : ['#688bfc', '#688bfc', '#688bfc', '#667eff', '#676cfe', '#7c7dfc', '#9489fe', '#b78ff9', '#96affb', '#7dffff'],
+          C2: ['#5357f6', '#5357f6', '#5357f6', '#5357f6', '#5754f8', '#625de3', '#6f5ee1', '#827cf5', '#6e9ae7', '#6e9ae7'],
+          D : ['#5046ef', '#5046ef', '#5046ef', '#5046ef', '#5046ef', '#6855ba', '#6855ba', '#776ad4', '#6984cf', '#6984cf'],
+        },
+        core: ['#caf8f7', '#bcfbf8', '#b2fdfe', '#94f9fa', '#8af5fc', '#c1fffb'],
+        halo: '#9c64ff',
+        rim: '#c3b1ee',
+        glow: '100,110,255',
+        sparks: ['#9fb4ff', '#c9a6ff', '#8ef3ff', '#ffffff'],
+      },
+      teal: {
+        bands: { A: 4.15, B: 8.5, C: 10.05, C2: 16.1 },
+        rings: {
+          A : ['#55fae7', '#55fae7', '#2afbe6', '#26fbe7', '#3dfbe4', '#47fbe5', '#86fbea', '#a0faeb', '#dcfdf0', '#f6fef2'],
+          B : ['#22eadb', '#22eadb', '#11ead5', '#0de8d5', '#13e5d7', '#20e4d3', '#37ebd7', '#57ead4', '#7cf3d2', '#7bf1e0'],
+          C : ['#11dcbb', '#11dcbb', '#11dcbb', '#06c5ab', '#0cc3b1', '#18c6a9', '#1ecab0', '#6cf1b0', '#7deec0', '#69ebb2'],
+          C2: ['#0eb3a7', '#0eb3a7', '#0eb3a7', '#0eb3a7', '#0abaa8', '#1cafa0', '#22bbaa', '#5ce0ac', '#57deb5', '#57deb5'],
+          D : ['#0eb3a7', '#0eb3a7', '#0eb3a7', '#0eb3a7', '#0abaa8', '#1cafa0', '#22bbaa', '#4ed5ae', '#4ed5ae', '#4ed5ae'],
+        },
+        core: ['#7bf8be', '#9efabf', '#bdfcc7', '#cbfcd8', '#effdde', '#fbfee9'],
+        halo: '#39feba',
+        rim: '#78f0c1',
+        glow: '40,240,205',
+        sparks: ['#5ff5d5', '#a8ffe0', '#3be5b8', '#f4fff0'],
+      },
+    };
+
+    // Reading order of the sheet: top row, then bottom row.
+    const FLAMES = [
+      { shape: 'drop', theme: 'fire', seed: 1.3,  speed: 1.00, amp: 1.00 },
+      { shape: 'curl', theme: 'fire', seed: 4.7,  speed: 0.92, amp: 1.05 },
+      { shape: 'wave', theme: 'fire', seed: 8.1,  speed: 1.08, amp: 1.10 },
+      { shape: 'twin', theme: 'fire', seed: 12.9, speed: 0.96, amp: 1.10 },
+      { shape: 'twin', theme: 'blue', seed: 17.4, speed: 1.04, amp: 1.10 },
+      { shape: 'twin', theme: 'teal', seed: 21.2, speed: 0.90, amp: 1.10 },
+    ];
+
+    // The grid follows the window: 3 x 2 like the sheet, or 2 x 3 on tall screens.
+    // ORIGIN is the base of the first flame on the sheet.
+    const ORIGIN = { x: 191.5, y: 254 };
+    const LAYOUTS = [
+      { cols: 3, pitchX: 175.75, pitchY: 165 },
+      { cols: 2, pitchX: 130, pitchY: 150 },
+    ];
+
+    // -----------------------------------------------------------------------
+    // Constants
+    // -----------------------------------------------------------------------
+
+    const NS = 'http://www.w3.org/2000/svg';
+    const TIP = 120;                        // flame height in shape units
+    const GLOW = { rx: 80, ry: 96, cy: -52 };   // soft light behind a flame, in shape units
+    const TILT = 12 * Math.PI / 180;        // the colour bands lean like on the sheet
+    const S0 = -124, S1 = 2;                // extent of the gradient along its axis
+    const AXIS = (() => {
+      const len = Math.cos(TILT) * (S1 - S0);
+      return { x1: 0, y1: S0, x2: -Math.sin(TILT) * len, y2: S0 + Math.cos(TILT) * len };
+    })();
+
+    // -----------------------------------------------------------------------
+    // Helpers
+    // -----------------------------------------------------------------------
+
+    const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+
+    function svg(tag, attrs, parent) {
+      const el = document.createElementNS(NS, tag);
+      for (const k in attrs) el.setAttribute(k, attrs[k]);
+      if (parent) parent.appendChild(el);
+      return el;
+    }
+
+    function gradient(id, colors, axis, parent) {
+      const g = svg('linearGradient', { id, gradientUnits: 'userSpaceOnUse', x1: axis.x1, y1: axis.y1, x2: axis.x2, y2: axis.y2 }, parent);
+      colors.forEach((c, i) => svg('stop', { offset: (i + 0.5) / colors.length, 'stop-color': c }, g));
+      return g;
+    }
+
+    // Smooth 1D value noise in [-1, 1].
+    function makeNoise(seed) {
+      const rnd = (i) => {
+        const s = Math.sin(i * 127.1 + seed * 311.7) * 43758.5453;
+        return (s - Math.floor(s)) * 2 - 1;
+      };
+      return (x) => {
+        const i = Math.floor(x), f = x - i;
+        const s = f * f * f * (f * (f * 6 - 15) + 10);
+        return rnd(i) + (rnd(i + 1) - rnd(i)) * s;
+      };
+    }
+
+    // Shapes are "M x y" followed by cubic segments and "Z": keep the numbers only.
+    const parse = (d) => Float64Array.from(d.match(/-?\d*\.?\d+/g), Number);
+
+    function serialize(p) {
+      const r = (v) => Math.round(v * 100) / 100;
+      let s = 'M' + r(p[0]) + ' ' + r(p[1]);
+      for (let i = 2; i < p.length; i += 6) {
+        s += 'C' + r(p[i]) + ' ' + r(p[i + 1]) + ' ' + r(p[i + 2]) + ' ' + r(p[i + 3]) + ' ' + r(p[i + 4]) + ' ' + r(p[i + 5]);
+      }
+      return s + 'Z';
+    }
+
+    function bounds(p) {
+      const b = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
+      for (let i = 0; i < p.length; i += 2) {
+        b.x0 = Math.min(b.x0, p[i]); b.x1 = Math.max(b.x1, p[i]);
+        b.y0 = Math.min(b.y0, p[i + 1]); b.y1 = Math.max(b.y1, p[i + 1]);
+      }
+      return b;
+    }
+
+    // Index (in the flat array) of the highest anchor point: where the tip is.
+    // Anchors are the start point and the end point of every cubic segment.
+    function tipIndex(p) {
+      let best = 0;
+      for (let k = 6; k < p.length; k += 6) {
+        if (p[k + 1] < p[best + 1]) best = k;
+      }
+      return best;
+    }
+
+    // Bend a shape: the base stays put, the higher a point the more it moves.
+    function warp(src, out, m) {
+      for (let k = 0; k < src.length; k += 2) {
+        let x = src[k], y = src[k + 1];
+        const u = clamp(-y / TIP, 0, 1.1);                       // 0 at the base, 1 at the tip
+        const lean = Math.pow(u, 1.7) * m.sway + Math.pow(u, 1.3) * m.wave * Math.sin(m.phase - u * 3.4);
+        x = x * (1 + m.squash * u) + lean;
+        y -= m.stretch * Math.pow(u, 1.3);
+        out[k] = m.px + (x - m.px) * m.scale + m.ox;
+        out[k + 1] = m.py + (y - m.py) * m.scale + m.oy;
+      }
+    }
+
+    // -----------------------------------------------------------------------
+    // Scene
+    // -----------------------------------------------------------------------
+
+    const defs = document.getElementById('defs');
+    const world = document.getElementById('world');
+    const hint = document.getElementById('hint');
+    const glows = document.getElementById('glows');
+    const canvas = document.getElementById('sparks');
+    const ctx = canvas.getContext('2d');
+
+    const view = { w: 0, h: 0, s: 1, tx: 0, ty: 0 };   // scene units -> css px
+
+    class Flame {
+      constructor(cfg, index) {
+        this.cfg = cfg;
+        this.index = index;
+        this.theme = THEMES[cfg.theme];
+        this.noise = makeNoise(cfg.seed);
+
+        const shape = SHAPES[cfg.shape];
+        this.body = parse(shape.body);
+        this.core = parse(shape.core);
+        this.bodyOut = new Float64Array(this.body.length);
+        this.coreOut = new Float64Array(this.core.length);
+        this.tip = tipIndex(this.body);
+        this.coreBox = bounds(this.core);
+        this.pivot = { x: (this.coreBox.x0 + this.coreBox.x1) / 2, y: (this.coreBox.y0 + this.coreBox.y1) / 2 };
+
+        this.cx = 0; this.cy = 0;
+        this.tipX = 0; this.tipY = -TIP;
+
+        // life cycle: ignition spring, click flare, hover, wind from the pointer
+        this.delay = reduceMotion ? 0 : 0.25 + index * 0.16;
+        this.ignited = false;
+        this.lit = 0; this.litV = 0;
+        this.flare = 0;
+        this.hover = 0; this.hoverTarget = 0;
+        this.wind = 0;
+        this.emitAcc = 0;
+
+        this.build();
+        this.bind();
+      }
+
+      // Outline, then the coloured bands clipped to the body, then the inner flame.
+      build() {
+        const { index: i, theme, cfg } = this;
+        const id = (name) => `${name}-${i}`;
+        this.g = svg('g', { class: 'flame' }, world);
+
+        this.glow = document.createElement('div');
+        this.glow.className = 'glow';
+        this.glow.style.background = `radial-gradient(closest-side, rgba(${theme.glow},.2), rgba(${theme.glow},.07) 45%, rgba(${theme.glow},0))`;
+        glows.appendChild(this.glow);
+        const outline = svg('path', { fill: '#000', stroke: '#000', 'stroke-width': 12, 'stroke-linejoin': 'round' }, this.g);
+
+        const clip = svg('clipPath', { id: id('clip') }, defs);
+        const clipShape = svg('path', {}, clip);
+        const layers = svg('g', { 'clip-path': `url(#${id('clip')})` }, this.g);
+
+        this.grads = {};
+        for (const key in theme.rings) this.grads[key] = gradient(id('ring' + key), theme.rings[key], AXIS, defs);
+
+        // Each band is the outline stroked with twice its width, clipped to the body:
+        // that keeps exactly the part within `r` px of the edge.
+        const band = (parent, key) => svg('path', {
+          fill: 'none', stroke: `url(#${id('ring' + key)})`, 'stroke-width': theme.bands[key] * 2, 'stroke-linejoin': 'round',
+        }, parent);
+
+        const deep = svg('path', { fill: `url(#${id('ringD')})` }, layers);
+        const bands = ['C2', 'C', 'B', 'A'].map((key) => band(layers, key));
+        this.flash = svg('path', { fill: '#fff', opacity: 0 }, layers);
+        this.bodyEls = [outline, clipShape, deep, ...bands, this.flash];
+
+        const cb = this.coreBox;
+        gradient(id('core'), theme.core, { x1: 0, y1: cb.y0, x2: 0, y2: cb.y1 }, defs);
+        const glowRing = (color, width, filter) => svg('path', {
+          fill: 'none', stroke: color, 'stroke-width': width, 'stroke-linejoin': 'round', filter: `url(#${filter})`,
+        }, this.g);
+        const halo = glowRing(theme.halo, 5, 'halo');
+        const rim = glowRing(theme.rim, 3.2, 'rim');
+        const core = svg('path', { fill: `url(#${id('core')})` }, this.g);
+        this.coreEls = [halo, rim, core];
+      }
+
+      bind() {
+        this.g.addEventListener('pointerenter', () => {
+          this.hoverTarget = 1;
+          this.flare = Math.max(this.flare, 0.4);
+          dismissHint();
+        });
+        this.g.addEventListener('pointerleave', () => { this.hoverTarget = 0; });
+        this.g.addEventListener('pointerdown', () => {
+          this.flare = 1;
+          burst(this, 26);
+          dismissHint();
+        });
+      }
+
+      place(x, y) {
+        this.cx = x;
+        this.cy = y;
+        const st = this.glow.style;
+        st.width = 2 * GLOW.rx * view.s + 'px';
+        st.height = 2 * GLOW.ry * view.s + 'px';
+        st.left = view.tx + (x - GLOW.rx) * view.s + 'px';
+        st.top = view.ty + (y + GLOW.cy - GLOW.ry) * view.s + 'px';
+      }
+
+      // Physics: the ignition spring, the decays, and the ember rate.
+      step(t, dt) {
+        if (!this.ignited && t >= this.delay) {
+          this.ignited = true;
+          if (SPARKS) burst(this, 10);
+        }
+        if (this.ignited) {
+          if (reduceMotion) {
+            this.lit = 1;
+          } else {
+            this.litV += ((1 - this.lit) * 90 - this.litV * 10) * dt;
+            this.lit += this.litV * dt;
+          }
+        }
+        this.flare *= Math.exp(-dt / 0.9);
+        this.hover += (this.hoverTarget - this.hover) * (1 - Math.exp(-dt * 8));
+        this.wind *= Math.exp(-dt / 0.6);
+
+        if (SPARKS && this.lit > 0.6) {
+          this.emitAcc += (4 + 12 * this.hover + 40 * this.flare) * AMP * dt;
+          while (this.emitAcc >= 1) { this.emitAcc -= 1; emit(this); }
+        }
+      }
+
+      render(t) {
+        const n = this.noise;
+        const T = t * this.cfg.speed;
+        const heat = AMP * this.cfg.amp * (1 + 0.6 * this.flare + 0.3 * this.hover);
+
+        const sway = heat * (6.5 * n(T * 0.8) + 2 * n(T * 2.2 + 9)) + this.wind * 10;
+        const stretch = heat * (3.4 * n(T * 1.3 + 23) + 1.5 * Math.sin(T * 5 + this.cfg.seed)) + (6 * this.flare + 2.5 * this.hover) * AMP;
+        const m = {
+          sway, stretch,
+          squash: -stretch * 0.003,
+          wave: heat * 2.2,
+          phase: T * 5.4 + this.cfg.seed,
+          px: 0, py: 0, scale: 1, ox: 0, oy: 0,
+        };
+
+        warp(this.body, this.bodyOut, m);
+        const d = serialize(this.bodyOut);
+        for (const el of this.bodyEls) el.setAttribute('d', d);
+
+        // The inner flame follows the body and jitters a little on its own.
+        m.px = this.pivot.x; m.py = this.pivot.y;
+        m.ox = heat * 1.4 * n(T * 1.1 + 5);
+        m.oy = heat * 1.1 * n(T * 1.7 + 31);
+        m.scale = 1 + 0.05 * heat * n(T * 2.4 + 17);
+        warp(this.core, this.coreOut, m);
+        const dc = serialize(this.coreOut);
+        for (const el of this.coreEls) el.setAttribute('d', dc);
+
+        // Heat pushes the colours upwards: the yellow climbs when the flame flares.
+        const shift = -(3 * n(T * 0.7 + 41) * AMP + 5 * this.flare + 2 * this.hover);
+        const shiftAttr = `translate(0 ${shift.toFixed(2)})`;
+        for (const key in this.grads) this.grads[key].setAttribute('gradientTransform', shiftAttr);
+
+        this.flash.setAttribute('opacity', (0.2 * this.flare).toFixed(3));
+
+        const light = clamp(this.lit * (0.7 + 0.3 * n(T * 1.1 + 3) + 0.5 * this.flare + 0.25 * this.hover), 0, 1);
+        this.glow.style.opacity = light.toFixed(3);
+        this.glow.style.transform = `scale(${(1 + 0.1 * this.flare + 0.05 * n(T * 0.9 + 7)).toFixed(3)})`;
+
+        const s = Math.max(this.lit, 0.001);
+        this.g.setAttribute('transform', `translate(${this.cx} ${this.cy}) scale(${s.toFixed(4)})`);
+
+        this.tipX = this.bodyOut[this.tip];
+        this.tipY = this.bodyOut[this.tip + 1];
+      }
+    }
+
+    const flames = FLAMES.map((cfg, i) => new Flame(cfg, i));
+
+    // -----------------------------------------------------------------------
+    // Embers — additive glowing dots on a canvas over the whole window
+    // -----------------------------------------------------------------------
+
+    const spriteCache = new Map();
+
+    function sprite(color) {
+      if (spriteCache.has(color)) return spriteCache.get(color);
+      const c = document.createElement('canvas');
+      c.width = c.height = 64;
+      const g = c.getContext('2d');
+      const rg = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+      rg.addColorStop(0, '#fff');
+      rg.addColorStop(0.18, color);
+      rg.addColorStop(0.5, color + '48');
+      rg.addColorStop(1, color + '00');
+      g.fillStyle = rg;
+      g.fillRect(0, 0, 64, 64);
+      spriteCache.set(color, c);
+      return c;
+    }
+
+    const embers = [];
+    const EMBERS_MAX = 280;
+
+    function spawn(flame, x, y, vx, vy) {
+      if (embers.length >= EMBERS_MAX) return;
+      const pal = flame.theme.sparks;
+      embers.push({
+        x, y, vx, vy, age: 0,
+        life: 0.9 + Math.random() * 1.5,
+        size: 0.9 + Math.random() * 1.9,
+        ph: Math.random() * 6.28,
+        img: sprite(pal[Math.floor(Math.random() * pal.length)]),
+      });
+    }
+
+    // A quiet ember lifting off the upper part of the flame.
+    function emit(flame) {
+      const s = flame.lit;
+      const r = 0.55 + Math.random() * 0.45;
+      spawn(flame,
+        flame.cx + (flame.tipX * r + (Math.random() - 0.5) * 24) * s,
+        flame.cy + flame.tipY * r * s,
+        (Math.random() - 0.5) * 14,
+        -(26 + Math.random() * 46));
+    }
+
+    // A handful of embers thrown in every direction (ignition, click).
+    function burst(flame, count) {
+      if (!SPARKS) return;
+      const s = Math.max(flame.lit, 0.6);
+      for (let k = 0; k < count; k++) {
+        const a = Math.random() * Math.PI * 2, speed = 50 + Math.random() * 110;
+        spawn(flame,
+          flame.cx + (Math.random() - 0.5) * 60 * s,
+          flame.cy - (20 + Math.random() * 80) * s,
+          Math.cos(a) * speed,
+          Math.sin(a) * speed - 40);
+      }
+    }
+
+    function stepEmbers(dt) {
+      for (let i = embers.length - 1; i >= 0; i--) {
+        const p = embers[i];
+        p.age += dt;
+        if (p.age >= p.life) { embers[i] = embers[embers.length - 1]; embers.pop(); continue; }
+        p.vx += (Math.sin(p.age * 3 + p.ph) * 26 - p.vx * 1.4) * dt;
+        p.vy *= 1 - 0.55 * dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+      }
+    }
+
+    function drawEmbers() {
+      ctx.clearRect(0, 0, view.w, view.h);
+      ctx.globalCompositeOperation = 'lighter';
+      for (const p of embers) {
+        const k = p.age / p.life;
+        const a = (k < 0.12 ? k / 0.12 : 1 - (k - 0.12) / 0.88) * (0.75 + 0.25 * Math.sin(p.age * 20 + p.ph));
+        const r = p.size * (1 - 0.55 * k) * 3.4 * view.s;
+        ctx.globalAlpha = Math.max(a, 0);
+        ctx.drawImage(p.img, p.x * view.s + view.tx - r, p.y * view.s + view.ty - r, r * 2, r * 2);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // -----------------------------------------------------------------------
+    // Layout — fit the grid in the window, picking the orientation that fills it best
+    // -----------------------------------------------------------------------
+
+    function layout() {
+      const w = innerWidth, h = innerHeight;
+      const reserve = 44;                                    // room for the hint line
+      let best = null;
+      for (const L of LAYOUTS) {
+        const rows = Math.ceil(FLAMES.length / L.cols);
+        const box = { x0: ORIGIN.x - 62, x1: ORIGIN.x + (L.cols - 1) * L.pitchX + 62, y0: ORIGIN.y - 150, y1: ORIGIN.y + (rows - 1) * L.pitchY + 28 };
+        const s = Math.min(w / (box.x1 - box.x0), (h - reserve) / (box.y1 - box.y0));
+        if (!best || s > best.s) best = { L, box, s };
+      }
+      const { L, box, s } = best;
+      view.w = w; view.h = h; view.s = s;
+      view.tx = Math.round((w - s * (box.x1 - box.x0)) / 2 - s * box.x0);   // whole pixels keep the edges crisp
+      view.ty = Math.round((h - reserve - s * (box.y1 - box.y0)) / 2 - s * box.y0);
+      world.setAttribute('transform', `translate(${view.tx} ${view.ty}) scale(${s.toFixed(4)})`);
+
+      flames.forEach((f, i) => f.place(ORIGIN.x + (i % L.cols) * L.pitchX, ORIGIN.y + Math.floor(i / L.cols) * L.pitchY));
+
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      dirty = true;
+    }
+
+    // -----------------------------------------------------------------------
+    // Input
+    // -----------------------------------------------------------------------
+
+    function dismissHint() { hint.classList.add('gone'); }
+
+    // Sweeping the pointer (or a finger) across a flame pushes it sideways.
+    let lastPointer = null;
+    addEventListener('pointerdown', (e) => { lastPointer = { x: e.clientX, y: e.clientY }; });
+    addEventListener('pointermove', (e) => {
+      if (lastPointer) {
+        const dx = (e.clientX - lastPointer.x) / view.s;
+        const py = (e.clientY - view.ty) / view.s, px = (e.clientX - view.tx) / view.s;
+        for (const f of flames) {
+          const ax = (px - f.cx) / 110, ay = (py - (f.cy - 55)) / 95;
+          const weight = Math.exp(-(ax * ax + ay * ay));
+          f.wind = clamp(f.wind + dx * weight * 0.012, -1.2, 1.2);
+        }
+      }
+      lastPointer = { x: e.clientX, y: e.clientY };
+    });
+    for (const type of ['pointerup', 'pointercancel']) {
+      addEventListener(type, (e) => { if (e.pointerType === 'touch') lastPointer = null; });
+    }
+
+    let paused = false;
+    addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        paused = !paused;
+      }
+    });
+
+    addEventListener('resize', layout);
+
+    // -----------------------------------------------------------------------
+    // Main loop
+    // -----------------------------------------------------------------------
+
+    let time = 0, last = performance.now(), dirty = true;
+
+    function frame(now) {
+      const dt = clamp((now - last) / 1000, 0, 0.05);
+      last = now;
+      if (!paused) {
+        time += dt;
+        for (const f of flames) f.step(time, dt);
+        if (SPARKS) stepEmbers(dt);
+        dirty = true;
+      }
+      if (dirty) {
+        for (const f of flames) f.render(time);
+        if (SPARKS) drawEmbers();
+        dirty = false;
+      }
+      requestAnimationFrame(frame);
+    }
+
+    layout();
+    requestAnimationFrame(frame);
+  })();
+  </script>
+</body>
+</html>
