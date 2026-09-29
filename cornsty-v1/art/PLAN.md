@@ -8,13 +8,21 @@ Style validé le 2026-09-29 : formes lisses et satinées, lumière et pinceau de
 
 **Retiré pour l'instant :** le vestiaire (merch : maillot, casquette, peluche, box, stickers) n'est pas refait. La V2 a trois stations : la machine, le comptoir, la caisse. Le vestiaire reste dans la V1.
 
+## Le récit et la méthode (précisés par le propriétaire le 2026-09-29)
+
+- **Le kiosque commence au plus bas, avec le minimum, dans le désert** : comptoir de planches, auvent rapiécé, une ampoule, une vieille machine, un panier, une caisse, un panneau. **La plage aux palmiers de l'image maîtresse est le rêve à atteindre.** Le désert est le point de départ visible ; le mirage de palmiers et de mer à l'horizon annonce le rêve. Le lien avec les paliers du Club (chaque palier fait pousser le kiosque vers la plage) est une piste naturelle, **à faire confirmer par le propriétaire avant de la construire**.
+- **La planche de style de l'ancienne étape 1 est écartée** (« pas vraiment démonstratif »). La référence de style est l'image maîtresse et le brouillon du désert, validé (« c'est vraiment pas mal »).
+- **Blender d'abord.** Le vrai logo, les 6 vrais pochons, le kiosque et **la Mouette modélisée à la main** se font dans Blender (scripts reproductibles dans `art/blender/`, zéro crédit). Higgsfield sert aux brouillons (le modèle le moins cher) et, seulement sur accord écrit et prix préchiffré, à des passes de style ou à des comparaisons (image → 3D).
+- **Le 2K suffit** (2048 × 1152 pour les images de scène). Pas de 4K ni de 8K : le propriétaire l'a dit, et c'est aussi ce qui garde le site léger. Les mentions de 4k plus bas sont des plafonds d'origine, remplacés par ce choix.
+- **Rendu** : Cycles (lumière réelle, débruitage), puis une finition en code (lueur dorée, étoiles jaunes à quatre branches, dominante chaude et ombres froides, grain de pinceau). Limite connue : c'est du 3D lissé avec finition peinte, pas de la vraie peinture ; une passe de style est possible si le propriétaire la veut.
+
 **Règles.** Chaque étape demande l'accord écrit du propriétaire avant de passer à la suivante et avant toute génération. Prix exact préchiffré avant chaque lancement, tout est noté dans `LEDGER.md`. La V1 ne change pas : la V2 se construit dans une copie et la remplace seulement après validation. Textes, logo et emballages exacts sont posés par-dessus en code, jamais générés.
 
 ## Qualité époustouflante sans faire bugger le site
 
 **À l'atelier : aucun compromis**
 
-- Génération au palier haut : décors et images phares en 4k, qualité haute (4,25 crédits l'image, préchiffré) ; qualité très haute (7) pour les images maîtresses ; le reste en 2k haute (2,75). Les originaux restent dans l'historique Higgsfield (identifiants de job notés dans `LEDGER.md`) ; le dépôt ne garde que les versions optimisées.
+- Rendu en 2K (2048 × 1152), demande du propriétaire : Cycles pour la 3D (gratuit), et pour les générations Higgsfield le palier 2k (GPT Image 2.5 haute 2,75 ; Nano Banana Pro 2). Le 4k (4,25 à 7 crédits l'image, préchiffré) reste possible pour une image maîtresse si le propriétaire le demande. Les originaux restent dans l'historique Higgsfield (identifiants de job notés dans `LEDGER.md`) ; le dépôt ne garde que les versions optimisées.
 - Animations faites dans Blender selon les vrais principes (anticipation, rebond, pièces qui suivent le mouvement, clignements, respiration), pas des boucles mécaniques.
 - Un essai avant chaque série : la Mouette posée sur le décor peint, avec la lumière de la scène, montrée au propriétaire avant de produire les planches.
 - Textes, logo et emballages posés en code : nets à toutes les tailles.
@@ -40,7 +48,7 @@ Style validé le 2026-09-29 : formes lisses et satinées, lumière et pinceau de
 
 | # | Étape | On produit | Outils | Crédits (estimation) | Le propriétaire valide |
 |---|---|---|---|---:|---|
-| 1 | Bible de style | 1 planche 16:9 en 4k, sans texte (palette, matières, lumière, étincelles, coups de pinceau) et la « recette » de consigne, interdits compris, réutilisée pour toutes les images | GPT Image 2.5 (haute, 4k) | 4 à 13 | la planche |
+| 1 | ~~Bible de style~~ → **le lieu de départ (désert)** | ~~planche de style~~ (écartée, 2 crédits dépensés) ; à la place : brouillon du désert (0,25 cr, validé), puis scène Blender finale en 2K avec le vrai logo, les vrais pochons et la Mouette modélisée (0 cr) | GPT Image 2.5 (brouillon), Blender | 2,25 dépensés | l'image finale du désert |
 | 2 | La Mouette | fiche de rotation 4 vues, objet 3D (essai Tripo 9 contre Meshy 7 à 38), squelette et animations dans Blender (bibliothèque de mouvements + les miens), rendu en planches d'images : repos, parle, salue, montre à gauche et à droite, sert, lance, attrape, fête, surprise, coquine, dort, marche, surf | GPT Image 2.5, Tripo, Meshy, Blender | 70 à 170 | la Mouette immobile, l'essai sur le décor, puis chaque lot d'animations |
 | 3 | Le décor peint | plans du comptoir, de la machine et de la caisse en 4k, calques de parallaxe, 4 lumières (jour, doré, coucher, nuit) | GPT Image 2.5 (haute, 4k), Nano Banana Pro, agrandissement | 90 à 220 | les plans, puis les lumières |
 | 4 | Le décor vivant | météo, 5 fêtes en calques, soleil, lune, nuages, voilier, crabe, palmiers, panneau de drop, enseigne, décor de palier | GPT Image 2.5, Nano Banana Pro | 40 à 100 | par famille |
@@ -51,7 +59,7 @@ Style validé le 2026-09-29 : formes lisses et satinées, lumière et pinceau de
 | 9 | Le site V2 | voir plus bas | code | 0 | démo à chaque jalon |
 | 10 | Tests de vitesse et bascule | budget respecté, parcours complets, repli sur la V1 | Playwright | 0 | la recette |
 
-Estimation totale (revue le 2026-09-29 après préchiffrage du palier haut) : environ 310 à 780 crédits sur 3 996, soit 8 à 19 %. Plafond de chaque étape = le haut de sa fourchette ; plafond global de la V2 : 800 crédits, jamais franchi sans accord écrit.
+Estimation totale (revue le 2026-09-29 après préchiffrage du palier haut) : environ 310 à 780 crédits sur 3 996, soit 8 à 19 %. Plafond de chaque étape = le haut de sa fourchette ; plafond global de la V2 : 800 crédits, jamais franchi sans accord écrit. Ces chiffres datent d'avant le passage à Blender et au 2K : ils sont un plafond, pas une prévision, et seront rechiffrés avec l'étape suivante (la 3D faite dans Blender ne coûte rien). Dépensé à ce jour : 6,25 crédits (voir `LEDGER.md`).
 
 ## Le site V2 (ce que je construis)
 
