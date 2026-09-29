@@ -1,43 +1,54 @@
-# Plan de production : Cornsty v2, style « gouache brillante »
+# Plan de production : Cornsty v2 en 3D, style « gouache brillante »
 
 Style validé le 2026-09-29 : formes lisses et satinées, lumière et pinceau de gouache, dominante bleue, halo doré des ampoules, étincelles jaunes, couleurs de la charte. Image maîtresse : celle du propriétaire (mélange des styles 3 et 4).
 
-**Règles.** Chaque étape demande l'accord écrit du propriétaire avant de passer à la suivante et avant toute génération. Prix exact préchiffré avant chaque lancement, tout est noté dans `LEDGER.md`. Le site actuel (v1) ne change pas : la v2 se construit à côté, dans un autre dossier, et on ne bascule qu'après validation. Textes, logo et emballages exacts sont posés par-dessus en code, jamais générés.
+**Décision du propriétaire (2026-09-29) : la 3D fait le site. Pas de vidéo.** Higgsfield génère les objets 3D, Blender (connecté) assemble la scène, le site les affiche en 3D temps réel dans le navigateur.
+
+**Règles.** Chaque étape demande l'accord écrit du propriétaire avant de passer à la suivante et avant toute génération. Prix exact préchiffré avant chaque lancement, tout est noté dans `LEDGER.md`. Le site actuel (v1) ne change pas : la v2 se construit à côté et on ne bascule qu'après validation. Textes, logo et emballages exacts sont posés par-dessus (textures, code), jamais générés.
+
+## Comment un objet est fabriqué
+
+1. Image de concept de l'objet dans le style, fond neutre (GPT Image 2.5 ou Nano Banana Pro, 0,25 à 2 crédits).
+2. Objet 3D texturé à partir de cette image (Tripo H3.1 9 crédits, Hunyuan3D v3 11, Meshy 7 texturé PBR 38).
+3. Nettoyage dans Blender : échelle, centre, allègement, matières, squelette si besoin.
+4. Export GLB léger, essai dans la scène.
 
 ## Étapes
 
 | # | Étape | On produit | Outils | Crédits (estimation) | Le propriétaire valide |
 |---|---|---|---|---:|---|
-| 1 | Bible de style | 1 planche (palette, matières, lumière, étincelles, coups de pinceau, interdits) + la « recette » de consigne réutilisée partout | GPT Image 2.5, Nano Banana Pro | 3 à 6 | la planche |
-| 2 | La Mouette, fiches | rotation 4 vues · 12 expressions · 16 poses · 10 costumes (5 fêtes, 4 paliers, maillot) | Nano Banana Pro (fidélité au personnage), GPT Image 2.5 (brouillons) | 60 à 120 | chaque groupe |
-| 3 | La Mouette, animation | 3a test comparatif d'une boucle : vidéo (MiniMax H3 Max 12,5 · Grok Video 1.5 22,5 · Seedance 2.5 35 par clip de 5 s), planche de sprites (AutoSprite, à chiffrer), objet 3D (Tripo 9 puis rig). 3b production de 16 clips : repos, parle, dort, salue, montre à gauche et à droite, sert, lance, attrape, fête, coquine, surprise, amour, surf, marche | vidéo, AutoSprite ou 3D selon le test | test 60 max, production 200 à 800 | le test, puis chaque lot de clips |
-| 4 | Le décor | plan du comptoir en 4K · prolongement à gauche et à droite (panorama) · 4 plans de station bureau et 4 plans mobiles portrait · calques pour la parallaxe (ciel, mer, dunes, kiosque, comptoir, feuillages) · 5 lumières (jour, doré, coucher, crépuscule, nuit) | Nano Banana Pro, GPT Image 2.5, prolongement d'image, agrandissement | 100 à 220 | le panorama, puis les lumières |
-| 5 | Le décor vivant | météo (pluie, neige, brouillard, éclair) · 5 fêtes en calques · soleil quatrefeuille, 8 phases de lune, nuages, oiseaux · voilier, promeneurs, crabe, palmiers, parasol, bouée · panneau de drop, horloge, enseigne | GPT Image 2.5, Nano Banana Pro | 50 à 100 | chaque famille |
-| 6 | Les produits | 6 pochons (emballages exacts) · 6 cartes produit · merch (maillot, casquette, peluche, box, stickers) · carte à tampons · 9 badges, 4 emblèmes de palier, trophée | Nano Banana Pro, Tripo (objets 3D si besoin) | 80 à 150 | chaque famille |
-| 7 | Les effets | 10 formes de grains, étincelles, cœurs, confettis, éclats · machine (repos, chauffe, éclate) · pochon (rempli, scellé, lancé) · tampon | GPT Image 2.5 | 30 à 60 | les planches |
-| 8 | L'interface | panneaux, boutons (états), bulles, pastilles, champs, tiroir panier, ticket, cadres produit, 24 icônes, curseur, écran d'intro, chargement | GPT Image 2.5, Nano Banana Pro + code | 40 à 80 | la maquette de chaque écran |
-| 9 | Le son (option) | 30 effets, 4 ambiances, voix de la Mouette (ElevenLabs v4) | Higgsfield audio ou ElevenLabs | à chiffrer | les échantillons |
-| 10 | Le site v2 | voir plus bas | code | 0 | démo à chaque grand jalon |
-| 11 | Tests et mise en ligne | parcours complets, captures, performance, accessibilité, repli sur la v1 | Playwright | 0 | la recette finale |
+| 1 | Bible de style 3D | 1 planche de style (image) + règles de matières, de lumière et de rendu temps réel | GPT Image 2.5, Nano Banana Pro | 3 à 6 | la planche |
+| 2 | La Mouette en 3D | fiche de rotation 4 vues, puis objet 3D (essai Tripo multivues 9 contre Meshy 7 à 38, on compare), nettoyage et squelette dans Blender, 16 animations (bibliothèque Meshy : repos, salut, marche, danse… et les miennes : parle, dort, montre, sert, lance) | Tripo, Meshy, Blender | 100 à 250 | la Mouette immobile, puis les animations |
+| 3 | Costumes de la Mouette | 5 chapeaux de fêtes, 4 tenues de paliers, lunettes relevées, maillot | image → 3D | 60 à 120 | le lot |
+| 4 | Le kiosque | auvent, mur, poteaux, ponton, comptoir (façades par saveur), machine à pop-corn, étagères, caisse, menu, guirlandes, fanions, enseigne, planche de surf (environ 40 objets) | image → 3D (Tripo) | 400 à 500 | par groupes |
+| 5 | L'île et le ciel | sable, mer, palmiers, nuages, soleil, lune, voilier, crabe, parasol, bouée (environ 15 objets) | image → 3D | 120 à 180 | le lot |
+| 6 | La scène dans Blender | assemblage, caméra en plongée douce par station, lumières (jour, doré, coucher, nuit), export | Blender (connecté) | 0 | les vues de chaque station |
+| 7 | Les produits | 6 pochons (emballages exacts en texture), maillot, casquette, peluche, box, stickers, badges, emblèmes de paliers | image → 3D + textures | 100 à 150 | par famille |
+| 8 | Les effets | grains de pop-corn 3D, étincelles, cœurs, confettis, fumée | Blender, code | 20 à 40 | l'essai |
+| 9 | Interface et son | panneaux, boutons, bulles, icônes, intro ; effets sonores, ambiances, voix (ElevenLabs v4) | image + code | à chiffrer | la maquette de chaque écran |
+| 10 | Le site v2 en 3D | voir plus bas | code | 0 | démo à chaque jalon |
+| 11 | Tests et mise en ligne | parcours complets, performance, accessibilité, repli sur la v1 | Playwright | 0 | la recette |
 
-Estimation totale : environ 900 à 1 500 crédits sur 3 996, avec un plafond fixé à chaque étape. Le choix du modèle vidéo est ce qui fait varier le plus.
+Estimation totale : environ 900 à 1 500 crédits sur 3 996, avec un plafond à chaque étape. Le prix des rigs et animations Meshy reste à chiffrer.
 
 ## Le site v2 (ce que je construis)
 
 1. Nouveau dossier à côté de la v1 (la v1 reste intacte), même moteur : chat, panier, caisse, Club, kiosque vivant.
-2. Décor en calques avec parallaxe et caméra par stations (bureau, tablette, mobile portrait).
-3. Lecteur d'animation de la Mouette : boucles, actions, transitions, synchronisation avec le chat, repli sur image fixe.
-4. Fondu entre les lumières selon l'heure du visiteur, météo, fêtes et déco du palier branchées sur le kiosque vivant.
-5. Show pop-corn refait avec les nouveaux grains, la machine et le pochon.
-6. Interface repensée sur tous les écrans (chat, produit, panier, caisse, ticket, Club, badges, mini-jeu, menu).
-7. Chargement par station, formats modernes (WebP, WebM), budget de poids, repli si l'appareil est faible, « version simple » rapide.
-8. Tests : parcours a à d et mobile, captures, performance, accessibilité, pas de requête externe.
-9. Démo hébergée légère, documentation, registre des crédits, page de crédits d'auteur.
+2. Scène 3D temps réel (three.js) : caméra libre entre les stations, léger effet de plongée, la Mouette qui suit le curseur du regard.
+3. Rendu « gouache brillante » en temps réel : matières satinées, lumière douce, contour lumineux, texture de pinceau, bloom, étincelles, étalonnage bleu.
+4. Mouette animée en direct : squelette, animations mélangées, bouche qui bouge avec le texte (et la voix plus tard), clignements.
+5. Show pop-corn en 3D : grains en instances avec physique, machine et pochon animés.
+6. Lumière selon l'heure du visiteur, météo, fêtes et déco du palier branchées sur le kiosque vivant.
+7. Interface repensée sur tous les écrans.
+8. Chargement par étapes, compression des modèles et des textures, budget de poids, repli en image fixe si l'appareil est faible, « version simple » rapide.
+9. Tests : parcours a à d et mobile, captures, performance, accessibilité.
+10. Démo hébergée allégée, documentation, registre des crédits, page de crédits d'auteur.
 
 ## Risques et limites
 
-- L'animation générée doit être testée avant de produire en série (étape 3). Si la qualité n'y est pas, repli sur la 3D (Blender + objet 3D), et c'est là que la connexion Blender servirait.
-- Vidéo avec transparence : WebM sur Chrome et Firefox, WebP animé ou planche de sprites en repli pour Safari.
-- La v2 est un site en plusieurs fichiers (plus un seul fichier) : il faut un hébergement statique. La démo hébergée sera une version allégée.
-- Je ne peux pas tester sur de vrais téléphones ni fournir l'hébergement. Le paiement réel et le serveur de commandes restent comme dans la v1.
+- Les objets générés ont besoin de nettoyage (échelle, formes, textures) : c'est le travail de l'étape Blender de chaque groupe.
+- Le squelette automatique de Meshy est fait pour des humanoïdes : la Mouette peut demander un squelette fait à la main dans Blender. Le test de l'étape 2 tranche.
+- La 3D temps réel est plus lourde qu'un décor en images : budget de poids et repli image fixe prévus, mais les vieux téléphones seront limités.
+- La v2 sera un site en plusieurs fichiers : il lui faut un hébergement statique. La démo hébergée sera allégée.
+- Je ne peux pas tester sur de vrais téléphones. Paiement réel et serveur de commandes : comme dans la v1.
 - Deux références de style portent une signature d'artiste (voir `LEDGER.md`) : on les crédite ou on s'éloigne de leur signature.
