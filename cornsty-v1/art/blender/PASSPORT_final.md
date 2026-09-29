@@ -8,7 +8,7 @@ Le kiosque de départ dans le désert, dans le style « gouache brillante » du 
 - intent : l'image finale de départ du site : le kiosque au minimum, dans le désert, avec la Mouette, le vrai logo et les vrais emballages
 - deliverable : une image 2048 × 1152 (2K, demande du propriétaire), le script reproductible, la scène ajoutée dans le Blender du propriétaire, un `.blend` avec textures empaquetées
 - units : mètres ; axes : droitier, Z vers le haut ; le kiosque regarde vers −Y
-- render : Cycles, 2048 × 1152, 320 échantillons au plus (échantillonnage adaptatif, seuil 0,008), débruitage OpenImageDenoise avec passes albédo et normale, sortie EXR flottant puis finition en Python
+- render : Cycles, 2048 × 1152, 256 échantillons au plus (échantillonnage adaptatif, seuil 0,008), débruitage OpenImageDenoise avec passes albédo et normale ; rendu en 3 bandes qui se recouvrent de 64 px (`render_bands.py`), recollées avec un fondu linéaire (`stitch_bands.py`), sortie EXR flottant, puis finition en Python (`post_final.py`)
 - dynamic : non. Image fixe demandée (« rendu final ») ; aucun mouvement dans cette scène
 
 ## HIERARCHY
@@ -46,4 +46,28 @@ Aucune génération : zéro crédit Higgsfield.
 - exposition verrouillée : `Standard`, 0
 
 ## ACCEPTANCE
-- structure, visuel, lumière : voir le rapport de livraison ; les limites connues y sont notées
+
+Vérifié le 2026-09-29. Tout ce qui est écrit « vu » a été regardé pour de bon.
+
+**Structure** (dans le Blender du propriétaire, 5.1.2, après dépôt de la scène)
+- `CORNSTY_Depart_Final` : 405 objets, moteur Cycles, 2048 × 1152, caméra `CAM_main` (32 mm), monde `WORLD_Final`, 4 lumières.
+- La Mouette : 27 pièces `HERO_gull_*` (corps, deux ailes de trois plumes, bec haut et bas, deux montures et deux verres, arcade, branches, chapeau, boucles).
+- 6 pochons `HERO_pouch_*` avec les vraies textures (976 × 1596, fichiers présents), logo `HERO_logo_wordmark` et `HERO_logo_mark`.
+- La scène `CORNSTY_Depart` du même fichier n'a pas été touchée (42 objets, ses 5 collections). Les noms déjà pris par elle portent le suffixe `.001` dans la scène finale (par exemple `COL_ENV.001`, `HERO_pouch_cheddar.001`). Rien n'a été enregistré ; une copie de sécurité du fichier a été écrite dans le dossier temporaire avant le dépôt.
+- Fichier de test hors interface : `.blend` autonome (une scène, 405 objets, 6 textures empaquetées, aucune image manquante), rouvert et relu.
+- Isolation testée : construire la scène finale dans un fichier qui contient déjà des collections, objets et matériaux de mêmes noms ne supprime ni ne remplace rien (les nouveaux prennent `.001`).
+
+**Visuel** (vu)
+- Image finale 2048 × 1152 examinée en entier puis en découpes à 100 % : visage de la Mouette (lunettes, bec, chapeau), pochons et logo, pièce d'auvent cousue avec son quatrefeuille, machine, panier, rocher, cactus, boule de paille : aucun défaut visible à cette échelle.
+- Les deux recouvrements entre bandes (lignes 320 à 448 et 704 à 832) examinés à 200 % : aucune couture visible.
+- Planche de rotation de la Mouette (face, trois-quarts, profil, dos) examinée.
+- Capture de la fenêtre 3D du propriétaire (mode Solide, vue caméra) : la géométrie correspond à la scène testée hors interface.
+
+**Lumière**
+- Soleil très bas à droite en contre-jour (liseré doré sur les plumes et le ventre), ampoule dorée, deux lumières de remplissage (chaude de face, froide à gauche). Les plumes translucides de l'aile droite, éclairées par derrière, forment de fins liserés orange à côté du panier : voulu (halo doré du style), à atténuer si le propriétaire le préfère.
+
+**Limites connues**
+- La finition (lueur dorée, étoiles à quatre branches, grain de pinceau, dominante) est faite par un script Python après le rendu (`post_final.py`) : elle n'est pas dans le `.blend`. Un rendu lancé dans Blender sans ce script n'a ni étoiles ni lueur ni grain.
+- Aucun rendu Cycles n'a été lancé dans le Blender du propriétaire (seul son affichage 3D a été vérifié). Les rendus viennent de Blender 5.0.1 en Python. Un rendu dans 5.1.2 devrait être identique, non vérifié.
+- Les textures des pochons sont lues dans le dossier temporaire du propriétaire : à empaqueter s'il enregistre le fichier.
+- C'est de la 3D lissée avec une finition peinte, pas de la peinture. La Mouette n'a ni jambes visibles ni queue, ses plumes sont de simples feuilles ; les bouts des branches de lunettes se voient par derrière comme deux petits points. Les cactus sont lisses (pas de côtes ni d'épines).
