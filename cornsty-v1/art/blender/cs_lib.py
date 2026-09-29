@@ -38,6 +38,12 @@ def hexcol(h, a=1.0):
 
 # ------------------------------------------------------------------ scene, collections
 def fresh(scene_name):
+    """Cree la scene `scene_name` (la recree si elle existe deja) SANS toucher au reste du fichier ouvert.
+
+    Seuls sont retires : les objets et les collections de l'ancienne scene du meme nom, et les donnees orphelines (0 utilisateur)
+    a prefixe de la charte. Les collections, materiaux et objets des autres scenes ne sont jamais supprimes : en cas de meme nom,
+    Blender ajoute un suffixe (.001) aux nouveaux.
+    """
     old = bpy.data.scenes.get(scene_name)
     if old is not None:
         other = next((s for s in bpy.data.scenes if s != old), None)
@@ -47,12 +53,12 @@ def fresh(scene_name):
                     w.scene = other
         except Exception:
             pass
+        cols = list(old.collection.children_recursive)
         for o in list(old.objects):
             bpy.data.objects.remove(o, do_unlink=True)
-        bpy.data.scenes.remove(old)
-    for c in list(bpy.data.collections):
-        if c.name.startswith('COL_'):
+        for c in cols:
             bpy.data.collections.remove(c)
+        bpy.data.scenes.remove(old)
     for store in (bpy.data.objects, bpy.data.meshes, bpy.data.curves, bpy.data.lights, bpy.data.cameras, bpy.data.materials):
         for d in list(store):
             if d.name.startswith(PREFIXES) and d.users == 0:
@@ -76,10 +82,7 @@ def _set(node, key, val):
 
 def new_mat(name, col, rough=0.6, metal=0.0, coat=0.0, coat_rough=0.12, sheen=0.0, spec=0.5, emit=None, emit_s=0.0,
             sss=0.0, sss_radius=(1.0, 0.5, 0.35), sss_scale=0.03, trans=0.0, ior=1.45, alpha=1.0):
-    old = bpy.data.materials.get(name)
-    if old is not None:
-        bpy.data.materials.remove(old)
-    m = bpy.data.materials.new(name)
+    m = bpy.data.materials.new(name)                 # jamais de suppression d'un materiau existant (il peut servir a une autre scene)
     m.use_nodes = True
     b = m.node_tree.nodes.get('Principled BSDF')
     _set(b, 'Base Color', hexcol(col) if isinstance(col, str) else col)
