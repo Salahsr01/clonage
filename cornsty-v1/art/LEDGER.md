@@ -18,6 +18,7 @@ Solde de départ (2026-09-29, plan Ultra) : **4 000,1 crédits**.
 | 2026-09-29 | Variantes de style | GPT Image 2.5 Sunburst, qualité basse, 1k, 16:9, 4 images (lot de 4 demandes indépendantes) | A nuit magique · B île-diorama · C le grand pop · D sauce Cornsty (motifs de la marque, la Mouette qui vole un pochon). Références : la Mouette du propriétaire + capture propre du kiosque actuel | −1,00 | 3 997,35 | Accord du propriétaire : « d'autres variantes dans cette qualité ». 4 × 0,25 comme préchiffré. Jobs `32884fa9-b630-45b3-ad4d-6a2f6cafb1ab` (A), `7aeab1cb-afeb-4feb-9f00-91c43408da7d` (B), `e54b35a9-722f-4fb2-b83b-6ad3f7a81f01` (C), `28a6d646-f518-49ae-919c-0b2f8ede829c` (D). |
 | 2026-09-29 | Styles sur la même image | GPT Image 2.5 Sunburst, qualité basse, 1k, 16:9, 4 images | Même scène que le test de style (image de base = job `62e50c3e-…`), rendu changé : 2 designer-toy · 3 jeu 3D brillant · 4 gouache 2D · 5 aplats pop. Références de style : voir plus bas | −1,00 | 3 996,35 | Accord du propriétaire : « d'autres styles sur cette image ». 4 × 0,25 comme préchiffré. Jobs `f1742231-3fe2-4647-883b-21798d2ee96f` (2), `54a8ebb4-2e0d-40c6-bb36-37b0612940da` (3), `9cf46a3e-5651-4ac1-8e72-e6f0daf5922d` (4), `498d9621-9a28-440b-a15d-87d60f6f6891` (5). |
 | 2026-09-29 | Style hybride | GPT Image 2.5 Sunburst, qualité basse, 1k, 16:9, 1 image | Mélange des styles 3 (jeu 3D brillant) et 4 (gouache 2D) sur la même scène. Références : l'image de base et les rendus des styles 3 et 4 (aucune image extérieure) | −0,25 | 3 996,10 | Accord du propriétaire : « une seule image qui les combine ». Job `2a644af7-566c-4974-b211-de45838adc80`. Coût conforme au tarif déjà préchiffré (0,25). |
+| 2026-09-29 | — | Préchiffrages du palier haut (`get_cost`, aucun job) | — | 0 | 3 996,10 | GPT Image 2.5 haute 4k, très haute 4k et Nano Banana Pro 4k (prix ci-dessous). Solde vérifié après : 3 996,1. |
 
 ## Prix relevés (préchiffrage, par image ou par objet)
 
@@ -26,8 +27,11 @@ Solde de départ (2026-09-29, plan Ultra) : **4 000,1 crédits**.
 | GPT Image 2.5 (Flare ou Sunburst) | basse, 1k | 0,25 |
 | GPT Image 2.5 | moyenne, 2k | 1 |
 | GPT Image 2.5 | haute, 2k | 2,75 |
+| GPT Image 2.5 | haute, 4k | 4,25 |
+| GPT Image 2.5 | très haute (xhigh), 4k | 7 |
 | GPT Image 2.5 | max, 4k | 15 |
 | Nano Banana Pro | 2k | 2 |
+| Nano Banana Pro | 4k | 4 |
 | Soul Cinema | 2k | 1 |
 | Tripo H3.1 image → 3D | texturé, PBR | 9 |
 | Hunyuan3D v3 image → 3D | par défaut | 11 |
@@ -38,12 +42,15 @@ Solde de départ (2026-09-29, plan Ultra) : **4 000,1 crédits**.
 
 Rigging et animations de la bibliothèque : à chiffrer. AutoSprite : le préchiffrage échoue (avec ou sans image), à refaire au moment du test.
 
-## Lot 1 — en attente d'accord : 8 crédits (le test de style ci-dessus vient avant)
+## Étape 1 (planche de style) — en attente d'accord : 4,25 crédits
+
+Remplace l'ancien « lot 1 » (fiche de rotation et comptoir), repris plus tard dans les étapes 2 et 3 du plan (`PLAN.md`).
 
 | Image | Références | Modèle | Crédits |
 |---|---|---|---:|
-| Fiche de rotation de la Mouette (face, trois quarts, profil, dos), 2 variantes | l'image de la Mouette du propriétaire | Nano Banana Pro, 2k | 4 |
-| Le comptoir Cornsty avec la Mouette, 2 variantes | la Mouette (personnage) + une capture du site actuel (disposition) | Nano Banana Pro, 2k | 4 |
+| Planche de style 16:9, sans texte : palette (outremer, rouge, crème, or), études de matière (satin glacé, gouache, halo doré, étincelles jaunes), la Mouette, le comptoir, un pochon, un bouton | l'image maîtresse du style (job `2a644af7-…`) + la Mouette du propriétaire (personnage) | GPT Image 2.5 (Sunburst), qualité haute, 4k | 4,25 |
+
+Le prix vaut pour une image ; il est re-préchiffré avec les réglages exacts juste avant le lancement. Solde après : 3 991,85. Si la planche ne convient pas, la retouche est chiffrée et annoncée avant de relancer.
 
 ## Références de style et crédits d'auteur
 
