@@ -1,0 +1,2 @@
+# the README screenshots are committed (the repo-wide rule ignores *.jpg)
+!docs/*.jpg
