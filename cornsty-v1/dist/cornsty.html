@@ -200,7 +200,7 @@ button:focus-visible,[tabindex]:focus-visible,input:focus-visible,a:focus-visibl
 /* ---------- modals */
 .modal{position:fixed;inset:0;z-index:100;display:grid;place-items:center;opacity:0;transition:opacity .28s;pointer-events:auto}
 .modal.in{opacity:1}.modal.out{opacity:0}
-.modal-bg{position:absolute;inset:0;background:rgba(38,35,43,.55);backdrop-filter:blur(3px)}
+.modal-bg{position:absolute;inset:0;background:rgba(38,35,43,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
 .modal-card{position:relative;width:min(580px,calc(100vw - 20px));max-height:calc(100vh - 20px);max-height:calc(100dvh - 20px);overflow:auto;background:var(--paper);border:3px solid var(--ink);border-radius:28px;box-shadow:0 10px 0 var(--ink);padding:26px;transform:translateY(24px) scale(.97);transition:transform .38s var(--ease);overscroll-behavior:contain}
 .modal.in .modal-card{transform:none}
 .modal-card.wide{width:min(1020px,calc(100vw - 20px))}
@@ -1979,6 +1979,12 @@ ${D.useWord(58, 134, 200, K.cream, null, 0, K.ink)}
       surprise: () => gesture(async (r) => {
         st.idle = false; api.glasses('up'); S.brow.t = 1; S.sq.t = 1.1; C.audio.squawk(0.7); api.emote('bang'); S.jaw.t = 0.8; await r.wait(700); S.jaw.t = 0; api.glasses('on'); S.brow.t = 0; S.sq.t = 1; st.idle = true;
       }),
+      // idle gag: she dozes off (head sinks, floating "Z"); any other act cancels the nap and wakes her up
+      nap: () => gesture(async (r) => {
+        st.idle = false; S.wOn.t = 0; S.hy.t = 18; S.hr.t = 8; S.hx.t = 3; S.sq.t = 0.985; S.brow.t = 0;
+        try { for (;;) { await r.wait(700); api.emote('zzz', 46, 2600, 44); await r.wait(1500); } }
+        finally { S.hy.t = 0; S.hr.t = 0; S.hx.t = 0; S.sq.t = 1; }
+      }),
       love: () => gesture(async (r) => { st.idle = false; api.lens('♥'); api.emote('heart'); api.emote('heart', 24); S.hr.t = -6; wobbleTuft(); await r.wait(1200); api.lens(''); S.hr.t = 0; st.idle = true; }),
       turn: (dir) => gesture(async (r) => { st.idle = false; S.sq.t = 0.9; S.flip.t = dir; await r.wait(320); S.sq.t = 1; st.idle = true; }),
       walk: (x, y, o = {}) => gesture(async (r) => {
@@ -1996,7 +2002,7 @@ ${D.useWord(58, 134, 200, K.cream, null, 0, K.ink)}
     api.act = (name, ...a) => (api.acts[name] ? api.acts[name](...a) : Promise.resolve());
 
     /* ------------ emotes: small floating symbols above the head */
-    api.emote = (type, dx = 0) => {
+    api.emote = (type, dx = 0, dur = 1100, rise = 70) => {
       const g = U.svg('g', { class: 'emote' });
       const cx = 56 + dx, cy = -520;
       const shapes = {
@@ -2005,11 +2011,12 @@ ${D.useWord(58, 134, 200, K.cream, null, 0, K.ink)}
         bang: `<g fill="${K.red}" stroke="${K.ink}" stroke-width="4" stroke-linejoin="round"><rect x="-6" y="-26" width="12" height="28" rx="5"/><circle cx="0" cy="12" r="7"/></g>`,
         dots: `<g fill="${K.ink}"><circle cx="-16" cy="0" r="5"/><circle cx="0" cy="0" r="5"/><circle cx="16" cy="0" r="5"/></g>`,
         note: `<path d="M-6 10V-18L12 -22V4" fill="none" stroke="${K.ink}" stroke-width="5" stroke-linecap="round"/><ellipse cx="-11" cy="11" rx="8" ry="6" fill="${K.ink}"/><ellipse cx="7" cy="5" rx="8" ry="6" fill="${K.ink}"/>`,
+        zzz: `<g transform="translate(0 46)" fill="none" stroke="${K.ink}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M-26 6H-10L-26 24H-10"/><path d="M-2 -18H20L-2 8H20"/></g>`,
       };
       g.innerHTML = shapes[type] || shapes.star;
       N.emotes.append(g);
       const run = new U.Run(), rx = U.rand(-24, 24);
-      run.tween(1100, (k) => { g.setAttribute('transform', `translate(${f(cx + rx * k)} ${f(cy - 70 * k)}) scale(${f(0.5 + U.ease.outBack(Math.min(1, k * 2.4)) * 0.75)})`); g.setAttribute('opacity', k < 0.75 ? 1 : f(1 - (k - 0.75) * 4)); }, U.ease.outQuad).then(() => g.remove()).catch(() => g.remove());
+      run.tween(dur, (k) => { g.setAttribute('transform', `translate(${f(cx + rx * k)} ${f(cy - rise * k)}) scale(${f(0.5 + U.ease.outBack(Math.min(1, k * 2.4)) * 0.75)})`); g.setAttribute('opacity', k < 0.75 ? 1 : f(1 - (k - 0.75) * 4)); }, U.ease.outQuad).then(() => g.remove()).catch(() => g.remove());
     };
 
     /* ------------ holding things (a node attached to the wing tip) */
@@ -3920,13 +3927,16 @@ ${SE.poster()}
   const say = async (lines, o = {}) => { const gl = g(); if (o.act) gl.act(o.act, ...(o.args || [])); await UI.say(lines, o); };
   const chips = (list, o) => UI.chips(list, o);
   const C_MORE = { t: 'Autre chose', act: 'other' };
-  const idleReset = () => { clearTimeout(CH._idle); CH._idle = setTimeout(idlePing, 42000); };
+  const arm = () => { clearTimeout(CH._idle); CH._idle = setTimeout(idlePing, 42000); };
+  // any interaction re-arms the timer; if she had dozed off, she wakes up with a squawk
+  const idleReset = () => { if (X.asleep) { X.asleep = false; g().rest(); g().act('surprise'); } arm(); };
   const idlePing = async () => {
-    if (C.pop.busy() || UI.modalStack.length || document.hidden) return idleReset();
+    if (C.pop.busy() || UI.modalStack.length || document.hidden) return arm();
     X.idlePings++;
+    if (X.idlePings === 4 && !U.reduced()) { X.asleep = true; UI.hideBubble(); g().act('nap'); return; }
     if (X.idlePings > 3) return;
     if (X.idlePings === 1) { g().act('nod'); } else if (X.idlePings === 2) { g().act('wave'); await say(pick(['Tu dors ? Le pop-corn refroidit…', 'Psst. Le kiosque est ouvert, hein.', 'Je peux éclater un pochon à blanc si tu veux. Juste pour la déco.']), { hold: 0 }); chips(CH.mainChips()); } else { g().act('hop'); await say('Je vais me faire un grain moi-même. Ne dis rien.', {}); }
-    idleReset();
+    arm();
   };
 
   CH.mainChips = () => {

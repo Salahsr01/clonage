@@ -262,6 +262,12 @@
       surprise: () => gesture(async (r) => {
         st.idle = false; api.glasses('up'); S.brow.t = 1; S.sq.t = 1.1; C.audio.squawk(0.7); api.emote('bang'); S.jaw.t = 0.8; await r.wait(700); S.jaw.t = 0; api.glasses('on'); S.brow.t = 0; S.sq.t = 1; st.idle = true;
       }),
+      // idle gag: she dozes off (head sinks, floating "Z"); any other act cancels the nap and wakes her up
+      nap: () => gesture(async (r) => {
+        st.idle = false; S.wOn.t = 0; S.hy.t = 18; S.hr.t = 8; S.hx.t = 3; S.sq.t = 0.985; S.brow.t = 0;
+        try { for (;;) { await r.wait(700); api.emote('zzz', 46, 2600, 44); await r.wait(1500); } }
+        finally { S.hy.t = 0; S.hr.t = 0; S.hx.t = 0; S.sq.t = 1; }
+      }),
       love: () => gesture(async (r) => { st.idle = false; api.lens('♥'); api.emote('heart'); api.emote('heart', 24); S.hr.t = -6; wobbleTuft(); await r.wait(1200); api.lens(''); S.hr.t = 0; st.idle = true; }),
       turn: (dir) => gesture(async (r) => { st.idle = false; S.sq.t = 0.9; S.flip.t = dir; await r.wait(320); S.sq.t = 1; st.idle = true; }),
       walk: (x, y, o = {}) => gesture(async (r) => {
@@ -279,7 +285,7 @@
     api.act = (name, ...a) => (api.acts[name] ? api.acts[name](...a) : Promise.resolve());
 
     /* ------------ emotes: small floating symbols above the head */
-    api.emote = (type, dx = 0) => {
+    api.emote = (type, dx = 0, dur = 1100, rise = 70) => {
       const g = U.svg('g', { class: 'emote' });
       const cx = 56 + dx, cy = -520;
       const shapes = {
@@ -288,11 +294,12 @@
         bang: `<g fill="${K.red}" stroke="${K.ink}" stroke-width="4" stroke-linejoin="round"><rect x="-6" y="-26" width="12" height="28" rx="5"/><circle cx="0" cy="12" r="7"/></g>`,
         dots: `<g fill="${K.ink}"><circle cx="-16" cy="0" r="5"/><circle cx="0" cy="0" r="5"/><circle cx="16" cy="0" r="5"/></g>`,
         note: `<path d="M-6 10V-18L12 -22V4" fill="none" stroke="${K.ink}" stroke-width="5" stroke-linecap="round"/><ellipse cx="-11" cy="11" rx="8" ry="6" fill="${K.ink}"/><ellipse cx="7" cy="5" rx="8" ry="6" fill="${K.ink}"/>`,
+        zzz: `<g transform="translate(0 46)" fill="none" stroke="${K.ink}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M-26 6H-10L-26 24H-10"/><path d="M-2 -18H20L-2 8H20"/></g>`,
       };
       g.innerHTML = shapes[type] || shapes.star;
       N.emotes.append(g);
       const run = new U.Run(), rx = U.rand(-24, 24);
-      run.tween(1100, (k) => { g.setAttribute('transform', `translate(${f(cx + rx * k)} ${f(cy - 70 * k)}) scale(${f(0.5 + U.ease.outBack(Math.min(1, k * 2.4)) * 0.75)})`); g.setAttribute('opacity', k < 0.75 ? 1 : f(1 - (k - 0.75) * 4)); }, U.ease.outQuad).then(() => g.remove()).catch(() => g.remove());
+      run.tween(dur, (k) => { g.setAttribute('transform', `translate(${f(cx + rx * k)} ${f(cy - rise * k)}) scale(${f(0.5 + U.ease.outBack(Math.min(1, k * 2.4)) * 0.75)})`); g.setAttribute('opacity', k < 0.75 ? 1 : f(1 - (k - 0.75) * 4)); }, U.ease.outQuad).then(() => g.remove()).catch(() => g.remove());
     };
 
     /* ------------ holding things (a node attached to the wing tip) */

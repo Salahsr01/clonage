@@ -6,7 +6,22 @@ Tout est dessiné avec **les vrais tracés vectoriels du brand book** (mouette, 
 
 > Démo de démonstration : **aucun paiement réel, aucune commande réelle**. Voir « Brancher pour de vrai » plus bas.
 
-![Intro](docs/01-intro.png)
+![La mouette fait éclater ton pop-corn](docs/03-show-pop.jpg)
+
+## En images
+
+| | |
+|---|---|
+| ![Intro](docs/01-intro.jpg) | ![Comptoir](docs/02-comptoir.jpg) |
+| **L'intro** — l'icône se construit comme dans le book, puis « Well, hello! » | **Le comptoir** — la Mouette conseille, la fiche produit glisse, le comptoir se repeint au motif de la saveur |
+| ![Panier](docs/04-panier.jpg) | ![Encaissement](docs/05-encaissement.jpg) |
+| **La caisse** — panier, code promo, récompenses du Club, conseil « honnête » de la Mouette | **L'encaissement** — touches, tiroir-caisse, confettis de pop-corn, points et tampons crédités |
+| ![Ticket](docs/06-ticket.jpg) | ![Club](docs/07-club.jpg) |
+| **Le ticket** — mise en page du ticket du book, vrai code-barres Code 39 | **Le Club** — carte à 10 tampons, paliers, série quotidienne, récompenses |
+| ![Badges](docs/08-badges.jpg) | ![Vestiaire](docs/09-vestiaire.jpg) |
+| **Les badges** — 9 stickers à débloquer, 6 saveurs à goûter | **Le vestiaire** — maillot, casquette, peluche, stickers, coffret |
+| ![Maillot](docs/10-maillot.jpg) | ![Mobile](docs/11-mobile.jpg) |
+| **Le maillot personnalisable** — aperçu face/dos en direct | **Mobile** — portrait pensé à part (fiche compacte, tiroir plein écran) |
 
 ## Ouvrir le site
 
@@ -27,7 +42,7 @@ Aucun serveur, aucune dépendance npm, aucun CDN : le site fait ~0,8 Mo (polices
 5. **La caisse** : panier, code promo, récompenses Club, livraison, paiement, puis **la Mouette encaisse** (touches, tiroir-caisse, ticket qui s'imprime), **ticket de caisse à la Cornsty** avec vrai **code-barres Code 39**, suivi de commande.
 6. **Le Club (fidélité)** : la carte du brand book en version vivante — **10 tampons** quatrefeuille avec la tête de mouette (10ᵉ = pochon offert), **points** et 4 **paliers** (Grain → Pop → Mouette → Légende, remises −5/−10/−15 %), **série quotidienne** (le *grain du jour* : chauffe-le, il éclate), **récompenses** à échanger, **9 badges** (stickers), **parrainage**, historique + « Recommander ». Tout est appliqué automatiquement au panier.
 7. **Le vestiaire** : maillot damier **personnalisable** (nom en script + numéro, aperçu face/dos en direct), casquette, peluche mouette-bouée, stickers, coffret cadeau.
-8. **Et aussi** : mini-jeu **Attrape-Pop** (points Club, 1 fois/jour), la planche de surf sur laquelle on peut cliquer, caméra à parallaxe, sons **100 % synthétisés** (pop, cliquetis de caisse, tampon, voix de la Mouette lettre par lettre — désactivés tant que le visiteur ne les active pas).
+8. **Et aussi** : mini-jeu **Attrape-Pop** (points Club, 1 fois/jour), la planche de surf sur laquelle on peut cliquer, une Mouette qui **s'endort** si tu la laisses seule trop longtemps (et se réveille en sursaut), caméra à parallaxe, sons **100 % synthétisés** (pop, cliquetis de caisse, tampon, voix de la Mouette lettre par lettre — désactivés tant que le visiteur ne les active pas).
 
 ## Accessibilité & robustesse
 
@@ -57,6 +72,7 @@ cornsty-v1/
 │  └─ audio.js fx.js ui.js catalog.js intro.js main.js
 ├─ src/css/                base, scène, interface, panneaux
 ├─ assets/fonts/           League Gothic, Inter, IBM Plex Mono, Yellowtail (script du maillot)
+├─ docs/                   captures d'écran du README
 └─ tools/                  build.js · extract-brand.py · fetch-fonts.js
 ```
 

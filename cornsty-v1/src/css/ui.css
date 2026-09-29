@@ -123,7 +123,7 @@
 /* ---------- modals */
 .modal{position:fixed;inset:0;z-index:100;display:grid;place-items:center;opacity:0;transition:opacity .28s;pointer-events:auto}
 .modal.in{opacity:1}.modal.out{opacity:0}
-.modal-bg{position:absolute;inset:0;background:rgba(38,35,43,.55);backdrop-filter:blur(3px)}
+.modal-bg{position:absolute;inset:0;background:rgba(38,35,43,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
 .modal-card{position:relative;width:min(580px,calc(100vw - 20px));max-height:calc(100vh - 20px);max-height:calc(100dvh - 20px);overflow:auto;background:var(--paper);border:3px solid var(--ink);border-radius:28px;box-shadow:0 10px 0 var(--ink);padding:26px;transform:translateY(24px) scale(.97);transition:transform .38s var(--ease);overscroll-behavior:contain}
 .modal.in .modal-card{transform:none}
 .modal-card.wide{width:min(1020px,calc(100vw - 20px))}

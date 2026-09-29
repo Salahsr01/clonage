@@ -81,13 +81,16 @@
   const say = async (lines, o = {}) => { const gl = g(); if (o.act) gl.act(o.act, ...(o.args || [])); await UI.say(lines, o); };
   const chips = (list, o) => UI.chips(list, o);
   const C_MORE = { t: 'Autre chose', act: 'other' };
-  const idleReset = () => { clearTimeout(CH._idle); CH._idle = setTimeout(idlePing, 42000); };
+  const arm = () => { clearTimeout(CH._idle); CH._idle = setTimeout(idlePing, 42000); };
+  // any interaction re-arms the timer; if she had dozed off, she wakes up with a squawk
+  const idleReset = () => { if (X.asleep) { X.asleep = false; g().rest(); g().act('surprise'); } arm(); };
   const idlePing = async () => {
-    if (C.pop.busy() || UI.modalStack.length || document.hidden) return idleReset();
+    if (C.pop.busy() || UI.modalStack.length || document.hidden) return arm();
     X.idlePings++;
+    if (X.idlePings === 4 && !U.reduced()) { X.asleep = true; UI.hideBubble(); g().act('nap'); return; }
     if (X.idlePings > 3) return;
     if (X.idlePings === 1) { g().act('nod'); } else if (X.idlePings === 2) { g().act('wave'); await say(pick(['Tu dors ? Le pop-corn refroidit…', 'Psst. Le kiosque est ouvert, hein.', 'Je peux éclater un pochon à blanc si tu veux. Juste pour la déco.']), { hold: 0 }); chips(CH.mainChips()); } else { g().act('hop'); await say('Je vais me faire un grain moi-même. Ne dis rien.', {}); }
-    idleReset();
+    arm();
   };
 
   CH.mainChips = () => {
