@@ -4,6 +4,7 @@ le vrai logo et les 6 vrais pochons. Compose avec cs_lib.py et gull.py (meme esp
 Unites : metres, Z vers le haut. Le kiosque regarde vers -Y, la camera regarde vers +Y.
 Rien n'est enregistre : la scene CORNSTY_Depart_Final est ajoutee au fichier ouvert, les autres scenes ne sont pas touchees.
 """
+import re
 from mathutils import noise as mnoise
 
 SCENE = 'CORNSTY_Depart_Final'
@@ -32,7 +33,7 @@ def build_world(sc):
     sp = nt.nodes.new('ShaderNodeSeparateXYZ')
     L(nm.outputs['Vector'], sp.inputs['Vector'])
     rp = nt.nodes.new('ShaderNodeValToRGB')
-    stops = [(0.0, '#FFD27A'), (0.03, '#FFB45E'), (0.075, '#F58A6A'), (0.13, '#D8659E'), (0.20, '#8B58C4'), (0.32, '#4B49BE'), (0.6, '#2B2FA6'), (1.0, '#1C1F86')]
+    stops = [(0.0, '#FFD27A'), (0.025, '#FFB45E'), (0.06, '#F58A6A'), (0.10, '#D8659E'), (0.145, '#9459C6'), (0.20, '#5450C4'), (0.30, '#3038B0'), (0.55, '#2B2FA6'), (1.0, '#1C1F86')]
     e = rp.color_ramp.elements
     while len(e) < len(stops):
         e.new(0.5)
@@ -266,6 +267,28 @@ def rock_mesh(name, r, rnd, seg=48, ring=28):
     return me
 
 
+def boulder_mesh(name, r, rnd, cuts=5):
+    """Rocher de gres : un cube subdivise, a moitie arrondi, bosselé, aplati (dessus plat, pied enterre). A biseauter ensuite."""
+    bm = bmesh.new()
+    bmesh.ops.create_cube(bm, size=2.0)
+    bmesh.ops.subdivide_edges(bm, edges=bm.edges[:], cuts=cuts, use_grid_fill=True)
+    seed = rnd.uniform(0, 100)
+    for v in bm.verts:
+        p = v.co.copy()
+        p = p.lerp(p.normalized() * 1.28, 0.42)
+        n = mnoise.noise(Vector((p.x * 1.7 + seed, p.y * 1.7, p.z * 1.7)))
+        p *= 1.0 + 0.24 * n
+        p.x *= 1.15
+        p.y *= 0.85
+        p.z = p.z * 0.70 if p.z > 0 else p.z * 0.32
+        v.co = p * r
+    me = bpy.data.meshes.new(name)
+    bm.to_mesh(me)
+    bm.free()
+    me.polygons.foreach_set('use_smooth', [True] * len(me.polygons))
+    return me
+
+
 def tumbleweed(coll, name, loc, r, mat, rnd, n=90):
     for i in range(n):
         pts = []
@@ -307,6 +330,8 @@ def build():
     haze_mix(m_ground, '#EBA890', 12.0, 90.0, glow=0.22)
     m_dune = sand_mat('MAT_dune', '#EDA65A', '#FBD08A', bump=0.02, wave_scale=0.3)
     haze_mix(m_dune, '#E9A092', 8.0, 120.0, glow=0.95)
+    m_drift = sand_mat('MAT_drift', '#E5A85A', '#F5CD88', bump=0.05, wave_scale=0.6)
+    haze_mix(m_drift, '#EBA890', 12.0, 90.0, glow=0.15)
     m_wood_a = wood_mat('MAT_wood_a', '#B27442', '#DCA063', bump=0.10, scale=4.0)
     m_wood_b = wood_mat('MAT_wood_b', '#9E6234', '#CB8D52', bump=0.10, scale=4.0)
     m_wood_c = wood_mat('MAT_wood_c', '#C08650', '#E4AE72', bump=0.10, scale=4.0)
@@ -314,9 +339,11 @@ def build():
     m_rope = new_mat('MAT_rope', '#D2AE72', 0.9, sheen=0.3)
     m_awn = stripe_mat('MAT_awning', '#7F90EA', '#F6EFDC', 0.36, rough=0.85, sheen=0.7, sss=0.25)
     m_patch = new_mat('MAT_patch', '#C94A44', 0.85, sheen=0.7, sss=0.2)
-    m_stitch = new_mat('MAT_stitch', '#3A2A2A', 0.7)
+    add_brush_bump(m_patch, 240.0, 0.3, 0.004)
+    m_stitch = new_mat('MAT_stitch', '#F1E4C4', 0.8, sheen=0.4)
     m_bulb = new_mat('MAT_bulb', '#FFE6B0', 0.2, emit='#FFC46A', emit_s=45.0)
     m_metal = new_mat('MAT_metal', '#4A4650', 0.4, metal=0.7)
+    m_nail = new_mat('MAT_nail', '#6E6068', 0.45, metal=0.6)
     m_cream = new_mat('MAT_cream', CREAM, 0.55, sheen=0.4)
     m_ink = new_mat('MAT_ink', INK, 0.4, coat=0.3, coat_rough=0.15)
     m_red = new_mat('MAT_red', RED, 0.4, coat=0.3, coat_rough=0.15)
@@ -327,7 +354,7 @@ def build():
     m_wicker = wood_mat('MAT_wicker', '#B98A4E', '#DDB878', grain=(1.0, 1.0, 1.0), bump=0.5, scale=60.0)
     m_cactus = new_mat('MAT_cactus', '#4FA85E', 0.6, sheen=0.5, sss=0.25, sss_scale=0.01)
     m_flower = new_mat('MAT_flower', '#FF6FA8', 0.5, sheen=0.4)
-    m_rock = new_mat('MAT_rock', '#C9A57E', 0.85, sheen=0.2)
+    m_rock = band_mat('MAT_rock', '#B98259', '#8A5236', [(-0.10, -0.075), (-0.035, -0.005), (0.04, 0.07), (0.115, 0.145)], rough=0.85, sheen=0.2)
     add_brush_bump(m_rock, 30.0, 0.25, 0.01)
     m_twig = new_mat('MAT_tumbleweed', '#B89058', 0.9)
     m_palm = new_mat('MAT_palm', '#5A3B2A', 0.9)
@@ -388,16 +415,26 @@ def build():
     sd = o.modifiers.new('Solidify', 'SOLIDIFY')
     sd.thickness = 0.012
     smooth_all(o)
-    pz = AWN_Z + 0.03
-    op = new_obj('PRP_awning_patch', boxes_mesh('PRP_awning_patch', [((0.98, -0.652, pz), (0.26, 0.012, 0.19), 0, 0, 0)]), cP, rot=(0, math.radians(2.5), 0), mats=[m_patch])
-    bevel(op, 0.006, 2)
+    # piece cousue sur la retombee, au creux d'un feston (x = 1.35) ; racine commune : la rotation se fait autour de son centre
+    px_, py_, pz_ = 1.35, -0.652, AWN_Z + 0.04
+    pw_, ph2_ = 0.26, 0.16
+    proot = new_obj('PRP_awning_patch_root', None, cP, loc=(px_, py_, pz_), rot=(0, math.radians(2.5), 0))
+    op = new_obj('PRP_awning_patch', boxes_mesh('PRP_awning_patch', [((0, 0, 0), (pw_, 0.012, ph2_), 0, 0, 0)]), cP, mats=[m_patch], parent=proot)
+    bevel(op, 0.007, 3)
     stitches = []
-    for side in range(4):
-        for k in range(9):
-            u = -0.5 + (k + 0.5) / 9
-            pos = [(u * 0.26, -0.095), (0.13, u * 0.19), (-u * 0.26, 0.095), (-0.13, -u * 0.19)][side]
-            stitches.append(((0.98 + pos[0], -0.66, pz + pos[1]), (0.02 if side % 2 == 0 else 0.004, 0.006, 0.004 if side % 2 == 0 else 0.02), 0, 0, 0))
-    new_obj('PRP_awning_stitches', boxes_mesh('PRP_awning_stitches', stitches), cP, mats=[m_stitch])
+    ins_ = 0.02
+    nl_, ns_ = 10, 6
+    for k in range(nl_):
+        u = -0.5 + (k + 0.5) / nl_
+        for sgn in (-1, 1):
+            stitches.append(((u * (pw_ - 2 * ins_), -0.009, sgn * (ph2_ / 2 - ins_)), (0.017, 0.005, 0.0035), 0, 0, 0))
+    for k in range(ns_):
+        u = -0.5 + (k + 0.5) / ns_
+        for sgn in (-1, 1):
+            stitches.append(((sgn * (pw_ / 2 - ins_), -0.009, u * (ph2_ - 2 * ins_)), (0.0035, 0.005, 0.017), 0, 0, 0))
+    new_obj('PRP_awning_stitches', boxes_mesh('PRP_awning_stitches', stitches), cP, mats=[m_stitch], parent=proot)
+    qd = re.search(r'd="([^"]+)"', open(asset('logo-quatrefoil.svg'), encoding='utf-8').read()).group(1)
+    shape_curve(cP, 'PRP_awning_patch_mark', qd, 0.075, 0.006, 0.0012, m_cream, loc=(0, -0.009, 0), rot=(math.pi / 2, 0, 0), parent=proot)
 
     # --- ampoule qui pend de l'auvent
     bz = AWN_Z - 0.20
@@ -492,10 +529,27 @@ def build():
         oc_ = new_obj('ENV_cactus_%d' % k, me, cE, loc=(px, py, r_ * 0.86), mats=[m_cactus])
         subsurf(oc_, 1, 2)
         new_obj('ENV_cactus_flowers_%d' % k, fl, cE, loc=(px, py, r_ * 0.86), mats=[m_flower])
-    new_obj('ENV_rock_1', rock_mesh('ENV_rock_1', 0.36, rnd), cE, loc=(-1.22, -1.15, 0.10), rot=(0, 0, 0.6), mats=[m_rock])
+    orock = new_obj('ENV_rock_1', boulder_mesh('ENV_rock_1', 0.30, rnd), cE, loc=(-1.12, -1.05, 0.04), rot=(0, 0, 0.6), mats=[m_rock])
+    bevel(orock, 0.03, 3, angle=35)
+    orock2 = new_obj('ENV_rock_2', boulder_mesh('ENV_rock_2', 0.11, rnd, 4), cE, loc=(-0.80, -1.22, 0.02), rot=(0, 0, 1.9), mats=[m_rock])
+    bevel(orock2, 0.015, 3, angle=35)
     for k, (px, py, r_) in enumerate([(-0.9, -1.4, 0.07), (0.3, -1.9, 0.05), (-2.3, -1.2, 0.09), (1.0, -1.5, 0.06)]):
         new_obj('ENV_pebble_%d' % k, rock_mesh('ENV_pebble_%d' % k, r_, rnd, 20, 12), cE, loc=(px, py, r_ * 0.3), mats=[m_rock])
     tumbleweed(cE, 'ENV_tumbleweed', (1.62, -1.15, 0.0), 0.27, m_twig, rnd)
+
+    # --- sable amasse au pied du comptoir (lie le bois au sol) et clous des planches
+    for k in range(10):
+        dx_ = -1.34 + k * 0.30 + rnd.uniform(-0.05, 0.05)
+        scl = (rnd.uniform(0.20, 0.32), rnd.uniform(0.08, 0.13), rnd.uniform(0.035, 0.060))
+        new_obj('ENV_drift_%d' % k, sphere_mesh('ENV_drift_%d' % k, 1.0, 24, 12, scale=scl), cE, loc=(dx_, -0.42 + rnd.uniform(-0.02, 0.03), 0.0), mats=[m_drift])
+    nail = sphere_mesh('nail_proto', 0.008, 8, 6, scale=(1.0, 0.45, 1.0))
+    nails = []
+    for i in range(20):
+        nx = -1.25 + 0.135 * i
+        for nz in (0.10, zt - 0.09):
+            nails.append((nail, Matrix.Translation((nx + rnd.uniform(-0.004, 0.004), -0.377, nz + rnd.uniform(-0.004, 0.004)))))
+    new_obj('PRP_counter_nails', join_meshes('PRP_counter_nails', nails), cP, mats=[m_nail])
+    bpy.data.meshes.remove(nail)
 
     # --- eclairage
     def add_light(name, kind, energy, color, loc, target=None, size=None, size_y=None, angle=None, radius=None):

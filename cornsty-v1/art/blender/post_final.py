@@ -81,7 +81,7 @@ def process(src, dst, glow=1.0, seed=3):
     h, w = lin.shape[:2]
     lum = lin @ np.array([0.2126, 0.7152, 0.0722], dtype=np.float32)
     # --- lueur : passe haute sur la luminance, plusieurs rayons, teinte doree
-    bright = np.clip(lin - 0.55, 0, None) * (lum[:, :, None] > 0.35)
+    bright = np.clip(np.minimum(lin, 6.0) - 0.55, 0, None) * (lum[:, :, None] > 0.35)      # les sources tres fortes (ampoule) sont plafonnees pour que la lueur reste douce
     scale = w / 2048.0
     bloom = 0.55 * gauss(bright, 5 * scale) + 0.45 * gauss(bright, 16 * scale) + 0.35 * gauss(bright, 46 * scale)
     tint = np.array([1.0, 0.82, 0.55], dtype=np.float32)
@@ -110,7 +110,7 @@ def process(src, dst, glow=1.0, seed=3):
     vig = 1 - 0.16 * np.clip((cx ** 2 * 0.8 + cy ** 2 * 1.0) - 0.35, 0, None)
     lin = lin * vig[:, :, None]
     # --- courbe : contraste doux + saturation, puis sRVB
-    out = lin_to_srgb(lin)
+    out = np.clip(lin_to_srgb(lin), 0, 1)                                # ecretage comme la vue « Standard » (sinon la courbe en S inverse les hautes lumieres)
     out = out + 0.10 * (out - 0.5) * (1 - np.abs(out - 0.5) * 2)         # S douce
     g = out @ np.array([0.2126, 0.7152, 0.0722], dtype=np.float32)
     out = g[:, :, None] + (out - g[:, :, None]) * 1.14

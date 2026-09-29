@@ -707,3 +707,36 @@ def logo_curves(coll, svg_text, width_m, depth, bev, mat_ink, mat_red, parent):
     lo = build('HERO_logo_wordmark', letters, mat_ink, 0.0)
     mo = build('HERO_logo_mark', mark, mat_red, -0.004, 1.5)
     return lo, mo, (x1 - x0) * sc, (y1 - y0) * sc
+
+
+def shape_curve(coll, name, d, width_m, depth, bev, mat, loc=(0, 0, 0), rot=(math.pi / 2, 0, 0), parent=None):
+    """Un contour SVG (attribut `d`) extrude, centre sur son origine, large de `width_m` metres (meme methode que le logo)."""
+    groups = parse_d(d)
+    allpts = [q[1] for s in groups for q in s['p']]
+    x0, x1 = min(p[0] for p in allpts), max(p[0] for p in allpts)
+    y0, y1 = min(p[1] for p in allpts), max(p[1] for p in allpts)
+    sc, cx, cy = width_m / (x1 - x0), (x0 + x1) / 2, (y0 + y1) / 2
+    f = lambda q: ((q[0] - cx) * sc, -(q[1] - cy) * sc, 0.0)
+    cu = bpy.data.curves.new(name, 'CURVE')
+    cu.dimensions = '2D'
+    cu.resolution_u = 10
+    try:
+        cu.fill_mode = 'FULL'
+    except TypeError:
+        cu.fill_mode = 'BOTH'
+    cu.extrude = depth / 2
+    cu.bevel_depth = bev
+    cu.bevel_resolution = 3
+    for s in groups:
+        sp = cu.splines.new('BEZIER')
+        sp.bezier_points.add(len(s['p']) - 1)
+        sp.use_cyclic_u = s['closed']
+        for bp, (hl, co, hr) in zip(sp.bezier_points, s['p']):
+            bp.handle_left_type = bp.handle_right_type = 'FREE'
+            bp.co = f(co)
+            bp.handle_left = f(hl)
+            bp.handle_right = f(hr)
+    cu.materials.append(mat)
+    o = bpy.data.objects.new(name, cu)
+    link(o, coll, loc=loc, rot=rot, parent=parent)
+    return o
