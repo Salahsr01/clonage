@@ -197,6 +197,16 @@
     if (st.gull != null) { const visW = (S.size.w - S.right) / (S.u * S.z); if (visW < 1300 && S.z >= 1) x = (st.x + st.gull) / 2; }
     S.cam.x = x; clampCam();
   };
+  /* extension point for OPTIONAL modules (the living kiosk): extra world-aligned layers, parallax included.
+     Nothing in the core depends on them; removing the module removes its layers. */
+  S.addLayer = (html, par, after) => {
+    const el = U.html(html);
+    if (after) after.after(el); else S.stage.insertBefore(el, U.$('.grain', S.stage));
+    S.layers.push({ el, par, svg: U.$('svg', el) });
+    S.layout();
+    return el;
+  };
+  S.removeLayer = (el) => { S.layers = S.layers.filter((l) => l.el !== el); el.remove(); };
   // extra bottom inset (e.g. the product card on phones): the camera glides so the seagull stays visible above it
   S.setExtra = (px, dur = 380) => {
     if (S._extraRun) S._extraRun.cancel();

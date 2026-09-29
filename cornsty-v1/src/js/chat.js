@@ -104,6 +104,8 @@
   CH.start = async () => {
     idleReset();
     const gl = g(), st = C.store.state, os = st.orders, nmv = name();
+    const feast = C.living && C.living.hello && C.living.hello();         // the feast of the moment, once per visit
+    if (feast) { gl.act('wave'); await say(feast, { hold: 250 }); }
     if (nmv || os.length) {
       const last = os[0], lf = last && last.lines[0];
       gl.act('wave');
@@ -320,6 +322,7 @@
       case 'help': return respond(analyze('aide'), 'aide');
       case 'joke': return respond(analyze('blague'), 'blague');
       case 'fact': return respond(analyze('anecdote'), 'anecdote');
+      case 'drop': return respond(analyze('le prochain drop'), 'drop');
       case 'clear': return respond(analyze('vide le panier'), 'vide');
       case 'noname': X.awaiting = null; UI.els.input.placeholder = 'Écris à la Mouette…'; g().act('nod'); await say(['Mystérieux, j’aime. Je t’appellerai « le client de l’ombre ».', 'Alors, qu’est-ce qui te ferait plaisir ?']); return chips(CH.mainChips());
       case 'convert': { const ok = C.shop.convertToTrio(); g().act('hop'); await say(ok ? 'Fait ! Ta **Box Soirée Ciné** est prête : −1,20 € sur ta commande.' : 'Il me faut 3 pochons pour ça.'); return chips([{ t: 'Passer à la caisse', act: 'checkout', cls: 'red' }, C_MORE]); }

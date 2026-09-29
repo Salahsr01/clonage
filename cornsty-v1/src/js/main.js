@@ -20,6 +20,7 @@
 <div class="setting"><span><b>Ambiance mer</b><br><small>Vagues très discrètes (avec le son)</small></span><button class="switch" role="switch" aria-checked="${p.sea !== false}" data-s="sea" aria-label="Ambiance mer"></button></div>
 <div class="setting"><span><b>Show de fabrication</b><br><small>La Mouette éclate et emballe chaque pochon</small></span><select data-s="showMode" aria-label="Show de fabrication"><option value="auto" ${p.showMode !== 'always' && p.showMode !== 'never' ? 'selected' : ''}>1re fois complet, ensuite rapide</option><option value="always" ${p.showMode === 'always' ? 'selected' : ''}>Toujours complet</option><option value="never" ${p.showMode === 'never' ? 'selected' : ''}>Jamais (instantané)</option></select></div>
 <div class="setting"><span><b>Réduire les animations</b><br><small>Caméra, parallaxe et confettis atténués</small></span><button class="switch" role="switch" aria-checked="${U.reduced()}" data-s="motion" aria-label="Réduire les animations"></button></div>
+${C.living && C.living.menuHtml ? C.living.menuHtml() : ''}
 <div class="setting"><span><b>Remettre la démo à zéro</b><br><small>Efface panier, Club et commandes de cet appareil</small></span><button class="btn small" data-a="reset">Réinitialiser</button></div>
 <p class="eyebrow">Démo de comparaison · aucun paiement réel · données stockées sur cet appareil uniquement</p>` });
     const el = m.el;
@@ -40,6 +41,7 @@
       else if (s.dataset.s === 'motion') { C.store.prefs({ motion: on ? 'reduced' : 'full' }); document.documentElement.classList.toggle('reduced', U.reduced()); }
     }));
     $('[data-s=showMode]', el).addEventListener('change', (e) => { C.store.prefs({ showMode: e.target.value }); UI.toast('Réglage enregistré'); });
+    C.living && C.living.bindMenu && C.living.bindMenu(el);
   };
   const faq = () => {
     const rows = C.data.faq.map((f, i) => `<details ${i === 0 ? 'open' : ''}><summary>${U.esc(f.q)}</summary><p>${U.esc(f.a.replace('salut@cornsty.fr', C.cfg.brand.email))}</p></details>`).join('');
@@ -82,6 +84,7 @@
     try { const ref = new URLSearchParams(location.search).get('ref'); if (ref && !C.store.state.club.ref.used) { const r = C.store.club.useReferral(ref); if (r.ok) setTimeout(() => UI.toast('Code parrain appliqué : ' + r.msg, { kind: 'good' }), 2500); } } catch (e) { /* ignore */ }
     if (p.sound) { /* audio can only start after a gesture: the intro button unlocks it */ }
     C.shop.syncRegister(); C.scene.paint('nature');
+    C.living && C.living.mount && C.living.mount();          // optional layer: day/night, weather, feasts (see living.js)
     // hide the seagull behind the counter until the intro ends
     const g = C.scene.gull; g.S.bobY.snap(520); g.st.idle = false;
     C.scene.setCam(1450, 740, 0.62); // wide shot during the intro

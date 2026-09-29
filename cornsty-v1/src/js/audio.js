@@ -42,6 +42,23 @@
   const biq = (type, f, q) => { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; return b; };
   const gain = (v = 1) => { const g = ctx.createGain(); g.gain.value = v; return g; };
 
+  const beds = {};
+  const mkBed = (name) => {
+    const t = now(), g = gain(0.0001);
+    if (name === 'rain') { const src = ctx.createBufferSource(); src.buffer = noise; src.loop = true; src.start(t); chain(src, biq('highpass', 900), biq('lowpass', 7500), g, master); return { g, peak: 0.1, stop: () => src.stop() }; }
+    if (name === 'wind') { const src = ctx.createBufferSource(); src.buffer = brown; src.loop = true; src.start(t); const lfo = osc('sine', 0.13, t, 1e6), lg = gain(0.05); chain(src, biq('lowpass', 420, 0.7), g, master); lfo.connect(lg); lg.connect(g.gain); return { g, peak: 0.08, stop: () => { src.stop(); lfo.stop(); } }; }
+    // night: two crickets chirping at slightly different pitches (amplitude-gated sines)
+    const mk = (f, rate) => { const o = osc('sine', f, t, 1e6), am = gain(0), lfo = osc('square', rate, t, 1e6), lg = gain(0.5), off = ctx.createConstantSource ? ctx.createConstantSource() : null; chain(o, am, g); lfo.connect(lg); lg.connect(am.gain); if (off) { off.offset.value = 0.5; off.connect(am.gain); off.start(t); } return [o, lfo, off]; };
+    const a = mk(4300, 4.7), b = mk(4700, 5.3); g.connect(master);
+    return { g, peak: 0.016, stop: () => [...a, ...b].forEach((n) => { try { n && n.stop(); } catch (e) { /* ignore */ } }) };
+  };
+  const bedTo = (name, level) => {
+    let b = beds[name];
+    if (level <= 0.01) { if (b) { b.g.gain.setTargetAtTime(0.0001, now(), 0.8); clearTimeout(b.t); b.t = setTimeout(() => { try { b.stop(); } catch (e) { /* ignore */ } if (beds[name] === b) delete beds[name]; }, 4500); } return; }
+    if (!b) b = beds[name] = mkBed(name);
+    clearTimeout(b.t); b.g.gain.setTargetAtTime(b.peak * level, now(), 1.4);
+  };
+
   Object.assign(A, {
     /* a kernel goes pop */
     pop(v = 1) {
@@ -120,6 +137,24 @@
       const o = osc('sawtooth', 46, t, dur + 0.5), g2 = gain(0); o.frequency.exponentialRampToValueAtTime(74, t + dur); chain(o, biq('lowpass', 220), g2, master);
       g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(0.09, t + dur * 0.8); g2.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.4);
       return () => { try { g.gain.cancelScheduledValues(now()); g.gain.setTargetAtTime(0.0001, now(), 0.05); g2.gain.setTargetAtTime(0.0001, now(), 0.05); } catch (e) { /* ignore */ } };
+    },
+    /* ambience beds for the living kiosk: rain, wind, night crickets. One looping source per bed, faded in and out (never abrupt). */
+    ambience(spec) {
+      spec = spec || {};
+      if (!ctx || !on) { if (!on) for (const k in beds) bedTo(k, 0); return; }
+      bedTo('rain', spec.rain || 0); bedTo('wind', spec.wind || 0); bedTo('night', spec.night || 0);
+    },
+    /* thunder rolls in `delay` seconds after the flash */
+    thunder(delay = 0.5) {
+      if (!ok()) return; const t = now() + delay, dur = 2.6 + Math.random() * 1.6, g = gain(0.0001), lp = biq('lowpass', 260, 0.6);
+      lp.frequency.exponentialRampToValueAtTime(70, t + dur); chain(nsrc(brown, t, dur + 0.5), lp, g, master);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.55, t + 0.12); g.gain.exponentialRampToValueAtTime(0.18, t + dur * 0.4); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    },
+    /* a firework somewhere over the sea: a soft thump, then the crackle */
+    firework() {
+      if (!ok()) return; const t = now() + Math.random() * 0.1, g = gain(0);
+      chain(nsrc(brown, t, 0.8), biq('lowpass', 700), g, master); env(g, t, 0.3, 0.01, 0.45);
+      for (let i = 0; i < 7; i++) { const tt = t + 0.35 + i * 0.13 + Math.random() * 0.08, gg = gain(0); chain(nsrc(noise, tt, 0.05), biq('highpass', 3000 + Math.random() * 2000), gg, master); env(gg, tt, 0.035, 0.001, 0.03); }
     },
     /* ambience: the sea, very quiet */
     sea(v) {

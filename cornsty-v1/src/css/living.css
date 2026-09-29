@@ -1,0 +1,69 @@
+/* Cornsty - the living kiosk (OPTIONAL layer). Every selector here is prefixed lv- / lvg- / lvsky-: nothing touches the core classes,
+   so deleting this file (and living*.js) leaves the kiosk exactly as it was designed. */
+
+/* ---------- far layers and the overlays over the kiosk */
+.lv-layer{pointer-events:none}
+.lv-tint{pointer-events:none;fill:rgba(0,0,0,0);will-change:opacity}    /* its own composited layer: recolouring never repaints the scene */
+.lv-glow{pointer-events:none;animation:lv-pulse 7s steps(14,end) infinite alternate}                   /* the whole SVG pulses: compositor only */
+.lv-glow *{pointer-events:none}
+@keyframes lv-pulse{from{opacity:.92}to{opacity:1}}
+.lv-vig{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 50% 44%,rgba(6,8,42,0) 40%,rgba(6,8,42,.62) 100%)}
+
+/* smooth transitions only when the visitor previews another moment (real time changes too slowly to need them) */
+.lv-smooth .lv-mv{transition:transform 2.6s cubic-bezier(.4,0,.2,1),opacity 1.8s}
+.lv-smooth #lv-stars,.lv-smooth #lv-fx,.lv-smooth #lv-birds,.lv-smooth .lv-cl,.lv-smooth #lvg-lights,.lv-smooth .lv-vig{transition:opacity 2.2s}
+.lv-smooth #lv-clouds{transition:fill 2.4s}
+.lv-smooth .lv-tint{transition:fill 2.6s}
+.lv-smooth .lv-seatint,.lv-smooth .lv-dunetint{transition:fill 2.6s}
+.lv-smooth #lv-skyg stop{transition:stop-color 2.6s}
+
+/* ---------- ambient animation (cheap: steps() timing, small areas) */
+.lv-tw{animation:lv-tw 4.4s steps(4,end) infinite}
+@keyframes lv-tw{0%,100%{opacity:1}50%{opacity:.2}}
+.lv-drift{animation:lv-drift 420s steps(420,end) infinite}
+@keyframes lv-drift{to{transform:translateX(3900px)}}
+.lv-drift2{animation:lv-drift2 600s steps(600,end) infinite}
+@keyframes lv-drift2{to{transform:translateX(4300px)}}
+.lv-walk{animation:lv-crab 16s steps(32,end) infinite}
+@keyframes lv-crab{0%,30%{transform:translateX(0)}40%,58%{transform:translateX(64px)}68%,86%{transform:translateX(-26px)}100%{transform:translateX(0)}}
+.lv-burst{opacity:0;transform-box:fill-box;transform-origin:center;animation:lv-burst 7s steps(7,end) infinite}
+@keyframes lv-burst{0%{transform:scale(.12);opacity:0}3%{opacity:1}28%{transform:scale(1);opacity:1}52%{transform:scale(1.18);opacity:0}100%{transform:scale(1.18);opacity:0}}
+.lv-bat{transform-box:fill-box;transform-origin:center;animation:lv-flap .45s steps(2,end) infinite}
+@keyframes lv-flap{50%{transform:scaleY(.55)}}
+.lv-swing{transform-origin:0 0;animation:lv-swing 4.6s steps(9,end) infinite alternate}
+@keyframes lv-swing{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
+.lv-drop-edge{animation:lv-edge 1.4s steps(2,end) infinite}
+@keyframes lv-edge{50%{opacity:.3}}
+#lv-clock:hover .lift,#lv-sign:hover .lift,#lv-drop:hover .lift{transform:translateY(-6px) scale(1.03)}
+
+/* ---------- weather (screen space, between the kiosk and the UI) */
+.lv-wx{position:absolute;inset:0;overflow:hidden;pointer-events:none;transition:opacity .6s,visibility 0s}
+.lv-duck .lv-wx{opacity:0;visibility:hidden;transition:opacity .5s,visibility 0s .5s}   /* while the popcorn show or a window is open: no weather (focus + zero cost) */
+.lv-wx>div{position:absolute;left:0;top:calc(var(--th,0px)*-1);width:calc(100% + var(--tw,0px));height:calc(100% + var(--th,0px));opacity:0;transition:opacity 2.4s;background-repeat:repeat;background-size:var(--tw) var(--th);will-change:transform}
+.lv-wx>div[hidden]{display:none}
+.lv-rain,.lv-snow,.lv-leaves,.lv-confetti{animation:lv-fall linear infinite}
+.lv-snow-b{animation-name:lv-fall-r}
+.lv-r{left:calc(var(--tw)*-1)!important}
+@keyframes lv-fall{to{transform:translate3d(calc(var(--tw)*-1),var(--th),0)}}
+@keyframes lv-fall-r{to{transform:translate3d(var(--tw),var(--th),0)}}
+.lv-up{top:0!important;animation:lv-rise linear infinite}
+@keyframes lv-rise{to{transform:translate3d(0,calc(var(--th)*-1),0)}}
+.lv-wx>.lv-fog{--tw:900px;--th:0px;top:0;height:100%;background-image:var(--lvfog),linear-gradient(to top,rgba(232,236,252,.6),rgba(232,236,252,0) 62%);background-size:900px 700px,100% 100%;background-position:0 100%,0 0;background-repeat:repeat-x,no-repeat;animation:lv-slide 90s linear infinite}
+@keyframes lv-slide{to{transform:translate3d(-900px,0,0)}}
+.lv-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+
+/* ---------- lite (device struggling): no full-screen animated layers */
+.lv-lite .lv-wx>div:not(.lv-fog){display:none}
+.lv-lite .lv-burst,.lv-lite #lv-fx{display:none}
+
+/* ---------- calm / reduced motion: the same look, standing still */
+.lv-calm .lv-glow,.lv-calm .lv-tw,.lv-calm .lv-drift,.lv-calm .lv-drift2,.lv-calm .lv-walk,.lv-calm .lv-burst,.lv-calm .lv-bat,.lv-calm .lv-swing,.lv-calm .lv-drop-edge,.lv-calm .lv-fog{animation:none}
+.reduced .lv-glow,.reduced .lv-tw,.reduced .lv-drift,.reduced .lv-drift2,.reduced .lv-walk,.reduced .lv-burst,.reduced .lv-bat,.reduced .lv-swing,.reduced .lv-drop-edge,.reduced .lv-fog{animation:none}
+@media (prefers-reduced-motion:reduce){.lv-glow,.lv-tw,.lv-drift,.lv-drift2,.lv-walk,.lv-burst,.lv-bat,.lv-swing,.lv-drop-edge,.lv-fog{animation:none}}
+.lv-calm .lv-drift,.lv-calm .lv-drift2,.reduced .lv-drift,.reduced .lv-drift2{display:none}
+
+/* ---------- settings (rendered inside the core menu) */
+.lv-prev{margin:2px 0 10px;border:2px dashed rgba(38,35,43,.28);border-radius:14px;padding:4px 12px 6px}
+.lv-prev>summary{cursor:pointer;font:700 13px var(--font-b);padding:8px 0}
+.lv-prev>summary small{font-weight:500;opacity:.6}
+.lv-prev .setting{padding:6px 0}

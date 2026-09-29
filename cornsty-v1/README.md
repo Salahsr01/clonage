@@ -31,7 +31,7 @@ Tout est dessiné avec **les vrais tracés vectoriels du brand book** (mouette, 
 | Version « source » | `cd cornsty-v1 && python3 -m http.server 8080` puis http://localhost:8080 (ou ouvrir `index.html` directement) |
 | Reconstruire le fichier unique | `node tools/build.js` (aucune dépendance) |
 
-Aucun serveur, aucune dépendance npm, aucun CDN : le site fait ~0,8 Mo (polices et dessins inclus) et n'appelle jamais l'extérieur.
+Aucun serveur, aucune dépendance npm, aucun CDN : le site fait ~0,9 Mo (polices et dessins inclus) et n'appelle rien d'extérieur (sauf la météo réelle, si tu l'actives).
 
 ## Ce que le visiteur vit
 
@@ -42,7 +42,45 @@ Aucun serveur, aucune dépendance npm, aucun CDN : le site fait ~0,8 Mo (polices
 5. **La caisse** : panier, code promo, récompenses Club, livraison, paiement, puis **la Mouette encaisse** (touches, tiroir-caisse, ticket qui s'imprime), **ticket de caisse à la Cornsty** avec vrai **code-barres Code 39**, suivi de commande.
 6. **Le Club (fidélité)** : la carte du brand book en version vivante — **10 tampons** quatrefeuille avec la tête de mouette (10ᵉ = pochon offert), **points** et 4 **paliers** (Grain → Pop → Mouette → Légende, remises −5/−10/−15 %), **série quotidienne** (le *grain du jour* : chauffe-le, il éclate), **récompenses** à échanger, **9 badges** (stickers), **parrainage**, historique + « Recommander ». Tout est appliqué automatiquement au panier.
 7. **Le vestiaire** : maillot damier **personnalisable** (nom en script + numéro, aperçu face/dos en direct), casquette, peluche mouette-bouée, stickers, coffret cadeau.
-8. **Et aussi** : mini-jeu **Attrape-Pop** (points Club, 1 fois/jour), la planche de surf sur laquelle on peut cliquer, une Mouette qui **s'endort** si tu la laisses seule trop longtemps (et se réveille en sursaut), caméra à parallaxe, sons **100 % synthétisés** (pop, cliquetis de caisse, tampon, voix de la Mouette lettre par lettre — désactivés tant que le visiteur ne les active pas).
+8. **Le kiosque vit** : le ciel suit **l'heure du visiteur** (lever et coucher du soleil réalistes, vraie phase de la lune, étoiles, guirlandes qui s'allument au crépuscule), la météo d'ambiance passe (pluie, orage, neige, brouillard), les fêtes de l'année changent la déco et le chapeau de la Mouette, un panneau affiche le compte à rebours du prochain drop, et **le décor grandit avec ton palier de fidélité** (voir « Le kiosque vivant » plus bas).
+9. **Et aussi** : mini-jeu **Attrape-Pop** (points Club, 1 fois/jour), la planche de surf sur laquelle on peut cliquer, une Mouette qui **s'endort** si tu la laisses seule trop longtemps (et se réveille en sursaut), caméra à parallaxe, sons **100 % synthétisés** (pop, cliquetis de caisse, tampon, voix de la Mouette lettre par lettre — désactivés tant que le visiteur ne les active pas).
+
+## Le kiosque vivant (couche optionnelle)
+
+Le kiosque n'est pas figé : il vit, **sans jamais gêner la boutique**. Tout est dans une couche à part (`living-*.js` + `living.css`) : rien n'est modifié dans le décor d'origine, tout est ajouté puis retiré proprement.
+
+| | |
+|---|---|
+| ![Matin : le soleil se lève sur la mer](docs/12-matin.jpg) | ![Nuit : la lune, les étoiles, les guirlandes allumées](docs/13-nuit.jpg) |
+| ![Soirée de pluie](docs/14-pluie.jpg) | ![Noël : bonnet, guirlande, neige](docs/15-noel.jpg) |
+| ![Halloween : citrouilles, toile, chapeau de sorcière](docs/16-halloween.jpg) | ![Ta déco : palier Légende, badges collés sur le comptoir, drop à venir](docs/17-ta-deco.jpg) |
+
+| Quoi | Comment ça marche |
+|---|---|
+| **Jour et nuit** | l'heure du visiteur pilote le ciel : lever/coucher du soleil calculés pour la latitude de Paris (≈ 05 h 50 → 21 h 55 en juin, 08 h 45 → 17 h 00 en décembre), soleil, **vraie phase de la lune**, étoiles, teinte du kiosque, vignette. Au crépuscule les guirlandes, la machine, le menu et l'enseigne néon **s'allument**. Une horloge murale donne l'heure du visiteur (clique dessus). |
+| **Météo** | soleil, nuages, pluie, orage (éclairs + tonnerre), neige, brouillard. Par défaut c'est une météo **d'ambiance** tirée au sort par jour (hors-ligne, aucune fausse promesse : c'est de la déco). Option : météo réelle du kiosque (Open-Meteo) ou ton propre fournisseur via `window.CORNSTY_WEATHER`. |
+| **Fêtes** | Saint-Valentin, 14 juillet (feu d'artifice), Halloween (citrouilles, toile, chauve-souris, chapeau de sorcière), Noël (guirlande, cadeaux, couronne, bonnet), Nouvel An (confettis, feux d'artifice). Fanions recolorés, chapeau de la Mouette, phrase d'accueil de saison. Feuilles d'automne hors fêtes. |
+| **Ta déco** | l'enseigne dit « OUVERT », puis **« CHEZ TON PRÉNOM »** dès le palier Mouette (en or au palier Légende) ; chaque badge gagné devient un **sticker collé sur le comptoir** ; le palier Légende pose un trophée pop-corn doré. |
+| **Le drop** | panneau à la craie avec le compte à rebours réel du prochain drop (`cfg.drop`) ; « en cours » pendant 6 h. |
+| **La vie autour** | voilier à l'horizon, promeneurs sur les dunes, un crabe sur la terrasse (clique dessus). |
+| **Le son** | pluie, vent, grillons de nuit, tonnerre, feux d'artifice : synthétisés, **uniquement si le visiteur a activé le son**. |
+
+**Réglages du visiteur** : Menu → *Kiosque vivant* → **Complet / Calme / Désactivé**. « Calme » garde la même image, immobile. Menu → *Aperçu de l'ambiance* permet de forcer l'heure, la météo et la fête pour tout voir (pratique pour tester).
+
+**Pourquoi ça ne perturbe pas le site (et ne le perturbera pas plus tard)**
+- **Additif** : le module ajoute ses calques (préfixe `lv-`) et les retire s'il est coupé. Il ne modifie jamais le dessin du kiosque.
+- **À sens unique** : le cœur du site ne dépend pas de lui. Les seuls points d'accroche du cœur sont quelques lignes gardées (`C.living && …` dans `main.js` et `chat.js`) et deux petites API génériques (`scene.addLayer`, `gull.accessory`).
+- **Léger** : aucun calcul à chaque image ; les couleurs ne sont réécrites que lorsqu'elles changent visiblement ; les particules sont des animations CSS sur le compositeur ; la météo se met en retrait pendant le show et pendant les fenêtres (caisse, menu…).
+- **Gardien de performance** : si l'appareil peine (images/s trop basses), le kiosque s'allège tout seul (d'abord plus de particules, puis image fixe). Un appareil déclaré faible démarre allégé. `prefers-reduced-motion` : aucune animation.
+- **Discret** : la couche est décorative (`aria-hidden`) et n'ajoute aucun arrêt de tabulation ; l'horloge, l'enseigne, le panneau de drop et le crabe se cliquent, sans plus.
+- **Sûr** : tout point d'entrée est protégé ; en cas d'erreur le module se retire au lieu de casser la boutique.
+- **Interrupteurs** : `cfg.living.enabled = false` (data.js), ou `window.CORNSTY_LIVING = false` avant les scripts, ou le menu. Pour le supprimer pour de bon : retire les 3 fichiers `living*.js`, `living.css` et leurs lignes dans `index.html` — le site marche à l'identique (testé).
+
+**Si tu redessines le kiosque** : les éléments vivants sont posés en coordonnées du monde (3200 × 1300, comme le décor). Déplace-les dans `living-art.js` (`clock`, `signBody`, `dropBody`, `stickers`…) ; le ciel visible est la bande à gauche du kiosque à la station « La machine ».
+
+**Le régler** (`src/js/data.js`, bloc `cfg.living`) : dates et contenu des fêtes, mode météo (`'ambience'`, `'real'`, `'clear'`), sons, latitude. Le drop reprend `cfg.drop` (jour, heure, durée en direct).
+
+**Autres visiteurs en direct / stock réel** : non inclus (il faut un serveur). L'architecture le permet (même principe que `CORNSTY_PAY` / `CORNSTY_ORDER`) ; je n'ai volontairement rien simulé qui ressemble à de vrais chiffres.
 
 ## Accessibilité & robustesse
 
@@ -69,11 +107,14 @@ cornsty-v1/
 │  ├─ chat.js              la conversation (NLU français + vendeur)
 │  ├─ shop.js              panier → livraison → paiement → encaissement → ticket
 │  ├─ club.js  game.js     fidélité, carte à tampons, grain du jour, Attrape-Pop
+│  ├─ living-model.js      le kiosque vivant, 1/4 : heure, soleil, lune, météo, fêtes (fonctions pures, testées)
+│  ├─ living-art.js        2/4 : ses dessins (ciel, lune, feux d'artifice, chapeaux, panneaux, pluie…)
+│  ├─ living.js            3/4 : son moteur (calques, réglages, gardien de performance, sons d'ambiance)
 │  └─ audio.js fx.js ui.js catalog.js intro.js main.js
-├─ src/css/                base, scène, interface, panneaux
+├─ src/css/                base, scène, interface, panneaux · living.css (4/4 du kiosque vivant)
 ├─ assets/fonts/           League Gothic, Inter, IBM Plex Mono, Yellowtail (script du maillot)
 ├─ docs/                   captures d'écran du README
-└─ tools/                  build.js · extract-brand.py · fetch-fonts.js
+└─ tools/                  build.js · extract-brand.py · fetch-fonts.js · test-living-model.js
 ```
 
 ## Personnaliser (5 minutes)
@@ -122,6 +163,7 @@ Ces éléments sont des **placeholders** (issus du brand book ou de ma rédactio
 - **Adresse, téléphone, e-mail, domaine, Instagram** : l'adresse du ticket vient du mock-up du book (24 rue des Martyrs) ; le téléphone, l'e-mail `salut@cornsty.fr` et le domaine `cornsty.fr` sont **des exemples de ma part** — à remplacer dans `cfg.brand` (`src/js/data.js`) et dans le `<noscript>` de `index.html`.
 - Sur les étiquettes j'ai écrit **« GOURMET POPCORN »** (le book dit « GOURMENT ») ; le texte « 1 pochon offert tous les 10 pochons » remplace le « WITH & PURCHASE » du visuel de carte.
 - Le **suivi de commande** et le **parrainage** sont simulés.
+- **Météo réelle** (option, désactivée par défaut) : elle appelle `api.open-meteo.com`, donc l'adresse IP du visiteur est vue par ce service. À mentionner dans ta politique de confidentialité si tu l'actives. Par défaut le site n'appelle toujours rien d'extérieur.
 
 ## Notes techniques
 

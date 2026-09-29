@@ -589,6 +589,77 @@ select{border:2.5px solid var(--ink);border-radius:12px;background:#fff;height:4
   .modal.drawer .modal-card{box-shadow:none;border:0;height:auto;width:auto}
   .dr-scroll{overflow:visible}
 }
+
+/* src/css/living.css */
+/* Cornsty - the living kiosk (OPTIONAL layer). Every selector here is prefixed lv- / lvg- / lvsky-: nothing touches the core classes,
+   so deleting this file (and living*.js) leaves the kiosk exactly as it was designed. */
+
+/* ---------- far layers and the overlays over the kiosk */
+.lv-layer{pointer-events:none}
+.lv-tint{pointer-events:none;fill:rgba(0,0,0,0);will-change:opacity}    /* its own composited layer: recolouring never repaints the scene */
+.lv-glow{pointer-events:none;animation:lv-pulse 7s steps(14,end) infinite alternate}                   /* the whole SVG pulses: compositor only */
+.lv-glow *{pointer-events:none}
+@keyframes lv-pulse{from{opacity:.92}to{opacity:1}}
+.lv-vig{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at 50% 44%,rgba(6,8,42,0) 40%,rgba(6,8,42,.62) 100%)}
+
+/* smooth transitions only when the visitor previews another moment (real time changes too slowly to need them) */
+.lv-smooth .lv-mv{transition:transform 2.6s cubic-bezier(.4,0,.2,1),opacity 1.8s}
+.lv-smooth #lv-stars,.lv-smooth #lv-fx,.lv-smooth #lv-birds,.lv-smooth .lv-cl,.lv-smooth #lvg-lights,.lv-smooth .lv-vig{transition:opacity 2.2s}
+.lv-smooth #lv-clouds{transition:fill 2.4s}
+.lv-smooth .lv-tint{transition:fill 2.6s}
+.lv-smooth .lv-seatint,.lv-smooth .lv-dunetint{transition:fill 2.6s}
+.lv-smooth #lv-skyg stop{transition:stop-color 2.6s}
+
+/* ---------- ambient animation (cheap: steps() timing, small areas) */
+.lv-tw{animation:lv-tw 4.4s steps(4,end) infinite}
+@keyframes lv-tw{0%,100%{opacity:1}50%{opacity:.2}}
+.lv-drift{animation:lv-drift 420s steps(420,end) infinite}
+@keyframes lv-drift{to{transform:translateX(3900px)}}
+.lv-drift2{animation:lv-drift2 600s steps(600,end) infinite}
+@keyframes lv-drift2{to{transform:translateX(4300px)}}
+.lv-walk{animation:lv-crab 16s steps(32,end) infinite}
+@keyframes lv-crab{0%,30%{transform:translateX(0)}40%,58%{transform:translateX(64px)}68%,86%{transform:translateX(-26px)}100%{transform:translateX(0)}}
+.lv-burst{opacity:0;transform-box:fill-box;transform-origin:center;animation:lv-burst 7s steps(7,end) infinite}
+@keyframes lv-burst{0%{transform:scale(.12);opacity:0}3%{opacity:1}28%{transform:scale(1);opacity:1}52%{transform:scale(1.18);opacity:0}100%{transform:scale(1.18);opacity:0}}
+.lv-bat{transform-box:fill-box;transform-origin:center;animation:lv-flap .45s steps(2,end) infinite}
+@keyframes lv-flap{50%{transform:scaleY(.55)}}
+.lv-swing{transform-origin:0 0;animation:lv-swing 4.6s steps(9,end) infinite alternate}
+@keyframes lv-swing{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
+.lv-drop-edge{animation:lv-edge 1.4s steps(2,end) infinite}
+@keyframes lv-edge{50%{opacity:.3}}
+#lv-clock:hover .lift,#lv-sign:hover .lift,#lv-drop:hover .lift{transform:translateY(-6px) scale(1.03)}
+
+/* ---------- weather (screen space, between the kiosk and the UI) */
+.lv-wx{position:absolute;inset:0;overflow:hidden;pointer-events:none;transition:opacity .6s,visibility 0s}
+.lv-duck .lv-wx{opacity:0;visibility:hidden;transition:opacity .5s,visibility 0s .5s}   /* while the popcorn show or a window is open: no weather (focus + zero cost) */
+.lv-wx>div{position:absolute;left:0;top:calc(var(--th,0px)*-1);width:calc(100% + var(--tw,0px));height:calc(100% + var(--th,0px));opacity:0;transition:opacity 2.4s;background-repeat:repeat;background-size:var(--tw) var(--th);will-change:transform}
+.lv-wx>div[hidden]{display:none}
+.lv-rain,.lv-snow,.lv-leaves,.lv-confetti{animation:lv-fall linear infinite}
+.lv-snow-b{animation-name:lv-fall-r}
+.lv-r{left:calc(var(--tw)*-1)!important}
+@keyframes lv-fall{to{transform:translate3d(calc(var(--tw)*-1),var(--th),0)}}
+@keyframes lv-fall-r{to{transform:translate3d(var(--tw),var(--th),0)}}
+.lv-up{top:0!important;animation:lv-rise linear infinite}
+@keyframes lv-rise{to{transform:translate3d(0,calc(var(--th)*-1),0)}}
+.lv-wx>.lv-fog{--tw:900px;--th:0px;top:0;height:100%;background-image:var(--lvfog),linear-gradient(to top,rgba(232,236,252,.6),rgba(232,236,252,0) 62%);background-size:900px 700px,100% 100%;background-position:0 100%,0 0;background-repeat:repeat-x,no-repeat;animation:lv-slide 90s linear infinite}
+@keyframes lv-slide{to{transform:translate3d(-900px,0,0)}}
+.lv-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+
+/* ---------- lite (device struggling): no full-screen animated layers */
+.lv-lite .lv-wx>div:not(.lv-fog){display:none}
+.lv-lite .lv-burst,.lv-lite #lv-fx{display:none}
+
+/* ---------- calm / reduced motion: the same look, standing still */
+.lv-calm .lv-glow,.lv-calm .lv-tw,.lv-calm .lv-drift,.lv-calm .lv-drift2,.lv-calm .lv-walk,.lv-calm .lv-burst,.lv-calm .lv-bat,.lv-calm .lv-swing,.lv-calm .lv-drop-edge,.lv-calm .lv-fog{animation:none}
+.reduced .lv-glow,.reduced .lv-tw,.reduced .lv-drift,.reduced .lv-drift2,.reduced .lv-walk,.reduced .lv-burst,.reduced .lv-bat,.reduced .lv-swing,.reduced .lv-drop-edge,.reduced .lv-fog{animation:none}
+@media (prefers-reduced-motion:reduce){.lv-glow,.lv-tw,.lv-drift,.lv-drift2,.lv-walk,.lv-burst,.lv-bat,.lv-swing,.lv-drop-edge,.lv-fog{animation:none}}
+.lv-calm .lv-drift,.lv-calm .lv-drift2,.reduced .lv-drift,.reduced .lv-drift2{display:none}
+
+/* ---------- settings (rendered inside the core menu) */
+.lv-prev{margin:2px 0 10px;border:2px dashed rgba(38,35,43,.28);border-radius:14px;padding:4px 12px 6px}
+.lv-prev>summary{cursor:pointer;font:700 13px var(--font-b);padding:8px 0}
+.lv-prev>summary small{font-weight:500;opacity:.6}
+.lv-prev .setting{padding:6px 0}
 </style>
 </head>
 <body>
@@ -808,7 +879,26 @@ select{border:2.5px solid var(--ink);border-radius:12px;background:#fff;height:4
       MOUETTE: { type: 'ship', label: 'Livraison offerte' },
     },
     payment: { provider: 'demo' },                 // 'demo' | 'custom' (see README: window.CORNSTY_PAY)
-    drop: { name: 'Drop d’automne', day: 5, hour: 18 }, // next Friday 18:00 - purely cosmetic countdown (day: 0=Sun..6=Sat)
+    drop: { name: 'Drop d’automne', day: 5, hour: 18, liveHours: 6 }, // weekly countdown on the drop board (day: 0=Sun..6=Sat) - purely cosmetic until you plug a real drop
+    /* The "living kiosk": day and night, weather, feasts, the drop board, your loyalty decor.  It is an OPTIONAL layer:
+       enabled:false (or window.CORNSTY_LIVING = false before the scripts) and the kiosk stays exactly as designed. */
+    living: {
+      enabled: true,
+      lat: 48.86,                                   // day length follows this latitude (Paris); sunrise/sunset are shown on the VISITOR'S clock
+      weather: { mode: 'ambience', refreshMin: 30 }, // 'ambience' = seeded dice roll per day (offline, honest: it is decoration)
+                                                    // 'real' = Open-Meteo for the kiosk's place (needs network; add it to your privacy notice)
+                                                    // 'clear' = always fair; or set window.CORNSTY_WEATHER = () => ({ type: 'rain', cloud: .9, intensity: .6 })
+      place: { lat: 48.8566, lon: 2.3522 },         // used only by weather.mode = 'real'
+      sound: true,                                  // rain / wind / crickets / thunder, only when the visitor turned the sound on
+      events: [                                     // [month, day] ranges, inclusive; a range may straddle New Year
+        { id: 'valentin', label: 'Saint-Valentin', from: [2, 7], to: [2, 14], bunting: ['#DE3F39', '#F5A3C7', '#F8F2E0', '#F5A3C7'], hat: 'heart', props: ['hearts', 'heartBunting'], particles: 'hearts', hello: 'Joyeuse Saint-Valentin ! Un pochon à partager, ça se fait très bien.' },
+        { id: 'bastille', label: 'Fête nationale', from: [7, 11], to: [7, 14], bunting: ['#DE3F39', '#F8F2E0', '#3E52CF'], hat: 'cockade', fireworks: true, hello: 'Bonne fête nationale ! Ce soir, feu d’artifice. Le pop-corn, lui, éclate toute l’année.' },
+        { id: 'halloween', label: 'Halloween', from: [10, 22], to: [11, 1], bunting: ['#FF8A1E', '#26232B', '#8A4FD6', '#FF8A1E'], hat: 'witch', props: ['pumpkins', 'cobweb', 'spider'], bats: true, lights: ['#FFB04A', '#C58BFF', '#FFB04A'], hello: 'Joyeux Halloween ! Des bonbons ou du pop-corn ? Moi, j’ai choisi.' },
+        { id: 'noel', label: 'Noël', from: [12, 8], to: [12, 26], bunting: ['#DE3F39', '#F8F2E0', '#2FB59B'], hat: 'santa', props: ['garland', 'gifts', 'wreath'], lights: ['#FFE9A6', '#FF8B8B', '#7BE3C8', '#8FA8FF'], particles: 'snow', hello: 'Joyeux Noël ! J’ai sorti le bonnet. Ne dis rien.' },
+        { id: 'nouvelan', label: 'Nouvel An', from: [12, 28], to: [1, 2], bunting: ['#FFD65C', '#788CE3', '#F5A3C7', '#F8F2E0'], hat: 'party', props: ['streamers'], fireworks: true, particles: 'confetti', hello: 'Bonne année ! Ma résolution : zéro grain oublié au fond du pochon.' },
+      ],
+      seasons: { autumn: { particles: 'leaves' } },  // gentle leaves in autumn when there is no feast
+    },
   };
 
   /* ------------------------------------------------------------------ flavours (from the brand-book packs) */
@@ -1649,6 +1739,23 @@ ${D.useWord(58, 134, 200, K.cream, null, 0, K.ink)}
   const biq = (type, f, q) => { const b = ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; if (q) b.Q.value = q; return b; };
   const gain = (v = 1) => { const g = ctx.createGain(); g.gain.value = v; return g; };
 
+  const beds = {};
+  const mkBed = (name) => {
+    const t = now(), g = gain(0.0001);
+    if (name === 'rain') { const src = ctx.createBufferSource(); src.buffer = noise; src.loop = true; src.start(t); chain(src, biq('highpass', 900), biq('lowpass', 7500), g, master); return { g, peak: 0.1, stop: () => src.stop() }; }
+    if (name === 'wind') { const src = ctx.createBufferSource(); src.buffer = brown; src.loop = true; src.start(t); const lfo = osc('sine', 0.13, t, 1e6), lg = gain(0.05); chain(src, biq('lowpass', 420, 0.7), g, master); lfo.connect(lg); lg.connect(g.gain); return { g, peak: 0.08, stop: () => { src.stop(); lfo.stop(); } }; }
+    // night: two crickets chirping at slightly different pitches (amplitude-gated sines)
+    const mk = (f, rate) => { const o = osc('sine', f, t, 1e6), am = gain(0), lfo = osc('square', rate, t, 1e6), lg = gain(0.5), off = ctx.createConstantSource ? ctx.createConstantSource() : null; chain(o, am, g); lfo.connect(lg); lg.connect(am.gain); if (off) { off.offset.value = 0.5; off.connect(am.gain); off.start(t); } return [o, lfo, off]; };
+    const a = mk(4300, 4.7), b = mk(4700, 5.3); g.connect(master);
+    return { g, peak: 0.016, stop: () => [...a, ...b].forEach((n) => { try { n && n.stop(); } catch (e) { /* ignore */ } }) };
+  };
+  const bedTo = (name, level) => {
+    let b = beds[name];
+    if (level <= 0.01) { if (b) { b.g.gain.setTargetAtTime(0.0001, now(), 0.8); clearTimeout(b.t); b.t = setTimeout(() => { try { b.stop(); } catch (e) { /* ignore */ } if (beds[name] === b) delete beds[name]; }, 4500); } return; }
+    if (!b) b = beds[name] = mkBed(name);
+    clearTimeout(b.t); b.g.gain.setTargetAtTime(b.peak * level, now(), 1.4);
+  };
+
   Object.assign(A, {
     /* a kernel goes pop */
     pop(v = 1) {
@@ -1728,6 +1835,24 @@ ${D.useWord(58, 134, 200, K.cream, null, 0, K.ink)}
       g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(0.09, t + dur * 0.8); g2.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.4);
       return () => { try { g.gain.cancelScheduledValues(now()); g.gain.setTargetAtTime(0.0001, now(), 0.05); g2.gain.setTargetAtTime(0.0001, now(), 0.05); } catch (e) { /* ignore */ } };
     },
+    /* ambience beds for the living kiosk: rain, wind, night crickets. One looping source per bed, faded in and out (never abrupt). */
+    ambience(spec) {
+      spec = spec || {};
+      if (!ctx || !on) { if (!on) for (const k in beds) bedTo(k, 0); return; }
+      bedTo('rain', spec.rain || 0); bedTo('wind', spec.wind || 0); bedTo('night', spec.night || 0);
+    },
+    /* thunder rolls in `delay` seconds after the flash */
+    thunder(delay = 0.5) {
+      if (!ok()) return; const t = now() + delay, dur = 2.6 + Math.random() * 1.6, g = gain(0.0001), lp = biq('lowpass', 260, 0.6);
+      lp.frequency.exponentialRampToValueAtTime(70, t + dur); chain(nsrc(brown, t, dur + 0.5), lp, g, master);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.55, t + 0.12); g.gain.exponentialRampToValueAtTime(0.18, t + dur * 0.4); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    },
+    /* a firework somewhere over the sea: a soft thump, then the crackle */
+    firework() {
+      if (!ok()) return; const t = now() + Math.random() * 0.1, g = gain(0);
+      chain(nsrc(brown, t, 0.8), biq('lowpass', 700), g, master); env(g, t, 0.3, 0.01, 0.45);
+      for (let i = 0; i < 7; i++) { const tt = t + 0.35 + i * 0.13 + Math.random() * 0.08, gg = gain(0); chain(nsrc(noise, tt, 0.05), biq('highpass', 3000 + Math.random() * 2000), gg, master); env(gg, tt, 0.035, 0.001, 0.03); }
+    },
     /* ambience: the sea, very quiet */
     sea(v) {
       if (!ctx) return;
@@ -1798,6 +1923,7 @@ ${D.useWord(58, 134, 200, K.cream, null, 0, K.ink)}
     <g class="g-hat">
       ${pp('crown')}${pp('crownL')}${pp('band')}${pp('bandL')}${pp('seam1')}${pp('seam2')}
       <g class="g-tuft">${pp('tuft')}</g>
+      <g class="g-acc"></g>
     </g>
     <rect class="g-necktop" x="-12" y="-436" width="82" height="38" fill="${K.cream}"/>
     <g class="g-hat2">${pp('brim')}${pp('brimL')}</g>
@@ -1836,7 +1962,7 @@ ${D.useWord(58, 134, 200, K.cream, null, 0, K.ink)}
     const q = (s) => el.querySelector(s);
     const N = {
       root: el, bob: q('.g-bob'), legA: q('.g-legA'), legB: q('.g-legB'), wingF: q('.g-wingF'), wingFin: q('.g-wingF-in'), wingN: q('.g-wingN'), wingNin: q('.g-wingN-in'), hold: q('.g-hold'),
-      fold: q('.g-fold'), cap: q('.g-cap'), head: q('.g-head'), headtop: q('.g-headtop'), hat: q('.g-hat'), hat2: q('.g-hat2'), tuft: q('.g-tuft'), face: q('.g-face'),
+      fold: q('.g-fold'), cap: q('.g-cap'), acc: q('.g-acc'), head: q('.g-head'), headtop: q('.g-headtop'), hat: q('.g-hat'), hat2: q('.g-hat2'), tuft: q('.g-tuft'), face: q('.g-face'),
       eyes: q('.g-eyes'), eyeL: q('.g-eyeL'), eyeR: q('.g-eyeR'), brow: q('.g-brow'), glasses: q('.g-glasses'), lensL: q('.g-lensL'), lensR: q('.g-lensR'),
       beak: q('.g-beak'), jaw: q('.g-jaw'), jawline: q('.g-jawline'), mouth: q('.g-mouth'), tongue: q('.g-tongue'), fx: q('.g-fx'), shadow: q('.g-shadow'), emotes: q('.g-emotes'), upper: q('.g-upper'),
     };
@@ -1951,6 +2077,8 @@ ${D.useWord(58, 134, 200, K.cream, null, 0, K.ink)}
     // glasses state: 'on' | 'up' | 'off'
     api.glasses = (mode) => { st.glasses = mode; S.gl.t = mode === 'on' ? 0 : mode === 'up' ? 0.55 : 1; S.eyeOn.t = mode === 'on' ? 0 : 1; };
     api.lens = (sym) => { st.lens = sym || ''; };
+    // seasonal accessory on top of the hat (santa hat, witch hat...): the SVG string comes from the optional living module
+    api.accessory = (svg) => { N.acc.innerHTML = svg || ''; };
     api.fx = (on) => { st.fx = !!on; };
 
     const hop = async (r, h = 46, dur = 340) => {
@@ -2495,6 +2623,16 @@ ${SE.poster()}
     if (st.gull != null) { const visW = (S.size.w - S.right) / (S.u * S.z); if (visW < 1300 && S.z >= 1) x = (st.x + st.gull) / 2; }
     S.cam.x = x; clampCam();
   };
+  /* extension point for OPTIONAL modules (the living kiosk): extra world-aligned layers, parallax included.
+     Nothing in the core depends on them; removing the module removes its layers. */
+  S.addLayer = (html, par, after) => {
+    const el = U.html(html);
+    if (after) after.after(el); else S.stage.insertBefore(el, U.$('.grain', S.stage));
+    S.layers.push({ el, par, svg: U.$('svg', el) });
+    S.layout();
+    return el;
+  };
+  S.removeLayer = (el) => { S.layers = S.layers.filter((l) => l.el !== el); el.remove(); };
   // extra bottom inset (e.g. the product card on phones): the camera glides so the seagull stays visible above it
   S.setExtra = (px, dur = 380) => {
     if (S._extraRun) S._extraRun.cancel();
@@ -3995,6 +4133,8 @@ ${SE.poster()}
   CH.start = async () => {
     idleReset();
     const gl = g(), st = C.store.state, os = st.orders, nmv = name();
+    const feast = C.living && C.living.hello && C.living.hello();         // the feast of the moment, once per visit
+    if (feast) { gl.act('wave'); await say(feast, { hold: 250 }); }
     if (nmv || os.length) {
       const last = os[0], lf = last && last.lines[0];
       gl.act('wave');
@@ -4211,6 +4351,7 @@ ${SE.poster()}
       case 'help': return respond(analyze('aide'), 'aide');
       case 'joke': return respond(analyze('blague'), 'blague');
       case 'fact': return respond(analyze('anecdote'), 'anecdote');
+      case 'drop': return respond(analyze('le prochain drop'), 'drop');
       case 'clear': return respond(analyze('vide le panier'), 'vide');
       case 'noname': X.awaiting = null; UI.els.input.placeholder = 'Écris à la Mouette…'; g().act('nod'); await say(['Mystérieux, j’aime. Je t’appellerai « le client de l’ombre ».', 'Alors, qu’est-ce qui te ferait plaisir ?']); return chips(CH.mainChips());
       case 'convert': { const ok = C.shop.convertToTrio(); g().act('hop'); await say(ok ? 'Fait ! Ta **Box Soirée Ciné** est prête : −1,20 € sur ta commande.' : 'Il me faut 3 pochons pour ça.'); return chips([{ t: 'Passer à la caisse', act: 'checkout', cls: 'red' }, C_MORE]); }
@@ -4308,6 +4449,806 @@ ${SE.poster()}
 })((window.Cornsty = window.Cornsty || {}));
 
 ;
+/* src/js/living-model.js */
+/* Cornsty - the living kiosk, part 1/4: the MODEL. Pure functions, no DOM, no timers, no network.
+   It answers "what does the kiosk look like right now?": time of day, sun and moon, weather, season, feast, drop countdown.
+   Everything is deterministic for a given date, so it is trivial to test (see tools/ and the README). */
+(function (C) {
+  'use strict';
+  const M = (C.livingModel = {});
+  const RAD = Math.PI / 180;
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const smooth = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
+  M.clamp = clamp; M.lerp = lerp; M.smooth = smooth;
+
+  /* ------------------------------------------------------------------ colours */
+  const hex = (h) => { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };
+  const toHex = (c) => '#' + c.map((v) => Math.round(clamp(v, 0, 255)).toString(16).padStart(2, '0')).join('');
+  M.mixHex = (a, b, t) => { const x = hex(a), y = hex(b); return toHex([lerp(x[0], y[0], t), lerp(x[1], y[1], t), lerp(x[2], y[2], t)]); };
+  M.rgba = (c) => `rgba(${Math.round(c[0])},${Math.round(c[1])},${Math.round(c[2])},${+c[3].toFixed(3)})`;
+
+  /* ------------------------------------------------------------------ calendar helpers */
+  M.dayOfYear = (d) => Math.round((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - Date.UTC(d.getFullYear(), 0, 0)) / 864e5);
+  M.isDst = (d) => { const y = d.getFullYear(), a = new Date(y, 0, 1).getTimezoneOffset(), b = new Date(y, 6, 1).getTimezoneOffset(); return a !== b && d.getTimezoneOffset() === Math.min(a, b); };
+  M.hourOf = (d) => d.getHours() + d.getMinutes() / 60 + d.getSeconds() / 3600;
+  M.dateKey = (d) => d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+  M.hash = (s) => { let h = 2166136261 >>> 0; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h; };
+  M.rng = (seed) => { let a = seed >>> 0; return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
+
+  /* ------------------------------------------------------------------ sun
+     Sunrise / sunset expressed in the VISITOR'S OWN clock (so their evening is the kiosk's evening), with the real day length
+     of the latitude given (Paris by default): ~05:50 -> 21:55 in June, ~08:45 -> 17:00 in December. */
+  M.sunTimes = (d, lat = 48.86) => {
+    const N = M.dayOfYear(d), B = (2 * Math.PI * (N - 81)) / 364;
+    const eot = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);                 // equation of time, minutes
+    const decl = 23.44 * Math.sin((2 * Math.PI * (N - 81)) / 365) * RAD, phi = lat * RAD;
+    const c = (Math.sin(-0.833 * RAD) - Math.sin(phi) * Math.sin(decl)) / (Math.cos(phi) * Math.cos(decl));
+    const h0 = Math.acos(clamp(c, -1, 1)) / RAD / 15;                                          // half day length, hours
+    const noon = 12.85 - eot / 60 + (M.isDst(d) ? 1 : 0);
+    return { sunrise: noon - h0, sunset: noon + h0, noon, dayLen: 2 * h0 };
+  };
+
+  /* ------------------------------------------------------------------ moon (real phase) */
+  const SYN = 29.530588853;
+  M.moon = (d) => {
+    const jd = d.getTime() / 864e5 + 2440587.5, age = (((jd - 2451550.26) % SYN) + SYN) % SYN;
+    return { age, k: (1 - Math.cos((2 * Math.PI * age) / SYN)) / 2, waxing: age < SYN / 2 };
+  };
+  // where the moon is on its arc: f in [0,1] while it is above the horizon, else -1
+  M.moonArc = (hour, sun, moon) => {
+    const transit = (sun.noon + (moon.age / SYN) * 24) % 24, dh = ((hour - transit + 36) % 24) - 12, half = 6.2;
+    return Math.abs(dh) < half ? (dh + half) / (2 * half) : -1;
+  };
+
+  /* ------------------------------------------------------------------ time-of-day palettes
+     sky = [top, middle, horizon]; tint = the colour laid over the kiosk (rgba); night 0..1; warm 0..1 (low sun glow) */
+  const P = {
+    night:   { sky: ['#0C1038', '#1E2470', '#3A3F9A'], tint: [12, 18, 98, 0.38], night: 1, warm: 0 },
+    blue:    { sky: ['#161B55', '#3A3F9A', '#7A6FB8'], tint: [28, 34, 112, 0.31], night: 0.85, warm: 0.15 },
+    dawn:    { sky: ['#4A5DC0', '#E39AB0', '#FFC9A3'], tint: [255, 150, 120, 0.16], night: 0.35, warm: 1 },
+    morning: { sky: ['#7F97EE', '#D8CBF0', '#FFE8C4'], tint: [255, 196, 140, 0.08], night: 0.05, warm: 0.5 },
+    day:     { sky: ['#8FA3F0', '#BFCBF8', '#F3EEDF'], tint: [255, 255, 255, 0], night: 0, warm: 0 },
+    golden:  { sky: ['#7F97EE', '#F2C79A', '#FFE0A8'], tint: [255, 170, 70, 0.14], night: 0, warm: 0.7 },
+    sunset:  { sky: ['#5C63C8', '#F08A9C', '#FFB36B'], tint: [255, 120, 70, 0.2], night: 0.2, warm: 1 },
+    dusk:    { sky: ['#2E3591', '#A9528F', '#F0806A'], tint: [110, 50, 120, 0.28], night: 0.55, warm: 0.4 },
+    late:    { sky: ['#161B60', '#2F3585', '#6A5AA8'], tint: [24, 30, 104, 0.35], night: 0.9, warm: 0 },
+  };
+  M.palettes = P;
+  // named moments (used by the "preview" control): hour of the day relative to sunrise / sunset
+  M.momentHour = (name, sun) => ({
+    dawn: sun.sunrise - 0.1, morning: sun.sunrise + 1, day: sun.noon, golden: sun.sunset - 0.8, sunset: sun.sunset, dusk: sun.sunset + 0.5, night: (sun.sunset + 3) % 24,
+  }[name]);
+
+  const mixPal = (a, b, t) => ({
+    sky: a.sky.map((c, i) => M.mixHex(c, b.sky[i], t)),
+    tint: a.tint.map((v, i) => lerp(v, b.tint[i], t)),
+    night: lerp(a.night, b.night, t), warm: lerp(a.warm, b.warm, t),
+  });
+  M.lightAt = (hour, sun) => {
+    const sr = sun.sunrise, ss = sun.sunset;
+    const K = [[sr - 1.4, P.night], [sr - 0.9, P.blue], [sr - 0.1, P.dawn], [sr + 0.8, P.morning], [sr + 2, P.day], [ss - 2.2, P.day], [ss - 0.8, P.golden], [ss, P.sunset], [ss + 0.45, P.dusk], [ss + 1, P.late], [ss + 1.6, P.night]];
+    if (hour <= K[0][0] || hour >= K[K.length - 1][0]) return mixPal(P.night, P.night, 0);
+    for (let i = 0; i < K.length - 1; i++) if (hour < K[i + 1][0]) return mixPal(K[i][1], K[i + 1][1], smooth((hour - K[i][0]) / (K[i + 1][0] - K[i][0])));
+    return mixPal(P.day, P.day, 0);
+  };
+
+  /* ------------------------------------------------------------------ seasons & feasts */
+  M.seasonAt = (d) => {
+    const m = d.getMonth() + 1, day = d.getDate(), v = m * 100 + day;
+    if (v >= 320 && v < 621) return 'spring';
+    if (v >= 621 && v < 922) return 'summer';
+    if (v >= 922 && v < 1221) return 'autumn';
+    return 'winter';
+  };
+  // events: [{ id, from:[month,day], to:[month,day], ... }], a range may wrap the new year (from Dec to Jan)
+  M.eventAt = (d, events) => {
+    const y = d.getFullYear();
+    for (const e of events || []) {
+      const [m1, d1] = e.from, [m2, d2] = e.to;
+      const a = new Date(y, m1 - 1, d1), b = new Date(y, m2 - 1, d2, 23, 59, 59);
+      if (m2 < m1 ? (d >= a || d <= b) : (d >= a && d <= b)) return e;
+    }
+    return null;
+  };
+
+  /* ------------------------------------------------------------------ weather
+     Two sources, both optional: an "ambience" weather that is just a seeded dice roll per day (no network, no lie about Paris),
+     or a real one mapped from WMO codes (the engine fetches it only if the owner turned it on). */
+  const DAY_WEIGHTS = {
+    winter: { clear: 0.28, mixed: 0.3, rain: 0.2, snow: 0.07, fog: 0.1, storm: 0.05 },
+    spring: { clear: 0.38, mixed: 0.32, rain: 0.22, fog: 0.04, storm: 0.04 },
+    summer: { clear: 0.6, mixed: 0.22, rain: 0.08, storm: 0.1 },
+    autumn: { clear: 0.26, mixed: 0.3, rain: 0.28, fog: 0.12, storm: 0.04 },
+  };
+  // -> { type: 'clear'|'clouds'|'rain'|'storm'|'snow'|'fog', cloud: 0..1, intensity: 0..1 }
+  M.pseudoWeather = (d, hour, season) => {
+    const r = M.rng(M.hash(M.dateKey(d) + 'w')), w = DAY_WEIGHTS[season] || DAY_WEIGHTS.spring;
+    let roll = r(), kind = 'clear';
+    for (const k of Object.keys(w)) { if (roll < w[k]) { kind = k; break; } roll -= w[k]; }
+    const start = 5 + r() * 12, len = 2 + r() * 5, inWin = hour >= start && hour < start + len, inten = 0.45 + r() * 0.55;
+    const phase = r() * 6.28, mixed = clamp(0.45 + 0.35 * Math.sin(hour * 0.5 + phase), 0.12, 0.88);
+    switch (kind) {
+      case 'rain': return inWin ? { type: 'rain', cloud: 0.85, intensity: inten } : { type: 'clouds', cloud: 0.7, intensity: 0 };
+      case 'storm': { const s2 = 12 + r() * 8; return hour >= s2 && hour < s2 + 1 + r() * 2 ? { type: 'storm', cloud: 1, intensity: 1 } : { type: 'clouds', cloud: 0.8, intensity: 0 }; }
+      case 'snow': return inWin ? { type: 'snow', cloud: 0.8, intensity: inten } : { type: 'clouds', cloud: 0.65, intensity: 0 };
+      case 'fog': return hour < 9.5 + r() * 2 ? { type: 'fog', cloud: 0.6, intensity: 0.8 } : { type: 'clear', cloud: 0.25, intensity: 0 };
+      case 'mixed': return mixed > 0.55 ? { type: 'clouds', cloud: mixed, intensity: 0 } : { type: 'clear', cloud: mixed, intensity: 0 };
+      default: return { type: 'clear', cloud: 0.12, intensity: 0 };
+    }
+  };
+  // WMO weather interpretation codes (Open-Meteo)
+  M.fromWmo = (code, windKmh = 0) => {
+    if (code === 0) return { type: 'clear', cloud: 0.05, intensity: 0 };
+    if (code <= 2) return { type: 'clear', cloud: 0.3, intensity: 0 };
+    if (code === 3) return { type: 'clouds', cloud: 0.85, intensity: 0 };
+    if (code === 45 || code === 48) return { type: 'fog', cloud: 0.6, intensity: 0.8 };
+    if ((code >= 51 && code <= 57) || (code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return { type: 'rain', cloud: 0.9, intensity: code >= 65 || code >= 81 ? 1 : 0.55 };
+    if ((code >= 71 && code <= 77) || code === 85 || code === 86) return { type: 'snow', cloud: 0.85, intensity: 0.7 };
+    if (code >= 95) return { type: 'storm', cloud: 1, intensity: 1 };
+    return { type: 'clouds', cloud: 0.5, intensity: 0 };
+  };
+  // grey the light down when it is overcast (the sun disappears, colours flatten)
+  M.applyWeather = (light, w) => {
+    const c = clamp(w.cloud || 0, 0, 1), grey = c * (w.type === 'storm' ? 0.75 : 0.55);
+    const dull = ['#6F7BA8', '#98A0C2', '#C9CCDB'], night = light.night;
+    const sky = light.sky.map((col, i) => M.mixHex(col, M.mixHex(dull[i], '#1E2350', night * 0.85), grey));
+    const tint = light.tint.slice();
+    const wet = w.type === 'rain' || w.type === 'storm' || w.type === 'snow' ? 1 : 0;
+    // extra cool grey veil on overcast days
+    const veil = [60, 72, 112, (0.16 * c + 0.06 * wet) * (1 - night * 0.85)];
+    const a = 1 - (1 - tint[3]) * (1 - veil[3]);
+    const mix = a > 0 ? [0, 1, 2].map((i) => (tint[i] * tint[3] + veil[i] * veil[3]) / (tint[3] + veil[3] || 1)) : [255, 255, 255];
+    return Object.assign({}, light, { sky, tint: [mix[0], mix[1], mix[2], a], sunVisible: 1 - smooth((c - 0.3) / 0.5), cloud: c });
+  };
+
+  /* ------------------------------------------------------------------ the drop countdown */
+  // drop = { day: 0..6 (0 = Sunday), hour: 0..23, liveHours: n }  -> weekly; returns the live state and the next start
+  M.dropState = (now, drop) => {
+    const live = drop.liveHours || 6, d = new Date(now);
+    const prev = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() - drop.day + 7) % 7), drop.hour);
+    if (prev > d) prev.setDate(prev.getDate() - 7);
+    const isLive = d - prev < live * 3600e3, next = new Date(prev.getTime());
+    next.setDate(next.getDate() + 7);
+    return { live: isLive, start: prev, next, msToNext: next - d, msLeft: isLive ? live * 3600e3 - (d - prev) : 0 };
+  };
+  M.fmtCountdown = (ms) => {
+    const s = Math.max(0, Math.floor(ms / 1000)), dd = Math.floor(s / 86400), hh = Math.floor((s % 86400) / 3600), mm = Math.floor((s % 3600) / 60), ss = s % 60, p = (n) => String(n).padStart(2, '0');
+    return dd > 0 ? `${dd} j ${p(hh)} h ${p(mm)}` : `${p(hh)}:${p(mm)}:${p(ss)}`;
+  };
+})((typeof window !== 'undefined' ? (window.Cornsty = window.Cornsty || {}) : (globalThis.Cornsty = globalThis.Cornsty || {})));
+
+;
+/* src/js/living-art.js */
+/* Cornsty - the living kiosk, part 2/4: the ART. Pure builders that return SVG / HTML strings (no DOM access, no state).
+   Same visual language as the rest of the site: flat colours, thick ink outline, the brand palette, the quatrefoil. */
+(function (C) {
+  'use strict';
+  const D = C.draw, K = D.COL, M = C.livingModel;
+  const A = (C.livingArt = {});
+  const f = (v) => +(+v).toFixed(1);
+  const OUT = (w = 5) => `stroke="${K.ink}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"`;
+  const SPARK = 'M0 -10Q1.8 -1.8 10 0Q1.8 1.8 0 10Q-1.8 1.8 -10 0Q-1.8 -1.8 0 -10Z';
+  const HEART = 'M0 9C-16 -2 -13 -15 -5 -15C-1 -15 0 -12 0 -10C0 -12 1 -15 5 -15C13 -15 16 -2 0 9Z';
+  const CLOUD = 'M0 60Q-6 24 32 24Q40-4 82 8Q116-20 150 12Q196 4 198 44Q214 62 190 72H16Q-4 72 0 60Z';
+  const FONT = "font-family=\"'League Gothic',Impact,sans-serif\"";
+  const MONO = "font-family=\"'IBM Plex Mono',ui-monospace,monospace\"";
+
+  /* ================================================================== far layers */
+  // The sky overlay: its own gradient (recoloured through the day), sun, moon (real phase), stars, clouds, birds, fireworks.
+  // Coordinates are the sky layer's (viewBox -1600..4800); the part you can actually see (the strip left of the kiosk at the machine station) is x in [-880, -450], y in [330, 690].
+  A.CLOUDS = [[-1000, 380, 1.2], [-650, 470, 0.8], [-260, 350, 1.05], [150, 440, 0.9], [560, 370, 1.3], [900, 470, 0.85], [1250, 390, 1.1], [-1300, 450, 1]];
+  A.sky = () => {
+    const r = M.rng(11);
+    let stars = '';
+    for (let i = 0; i < 74; i++) {
+      const x = r() < 0.6 ? -880 + r() * 620 : -1300 + r() * 2900, y = 336 + Math.pow(r(), 1.4) * 340, s = 0.4 + r() * 1.05, tw = r() < 0.32;
+      stars += `<path${tw ? ` class="lv-tw" style="animation-delay:${(-r() * 5).toFixed(1)}s"` : ''} transform="translate(${f(x)} ${f(y)}) scale(${s.toFixed(2)})" d="${SPARK}" fill="${r() < 0.14 ? '#FFC2DC' : '#FFF3C4'}"/>`;
+    }
+    const clouds = A.CLOUDS.map(([x, y, s], i) => `<g class="lv-cl cloud c${i % 3}" data-i="${i}" transform="translate(${x} ${y}) scale(${s})"><path d="${CLOUD}" stroke="${K.ink}" stroke-width="4" stroke-linejoin="round"/></g>`).join('');
+    const birds = [[-700, 400], [-560, 372], [-620, 452], [640, 390], [780, 430]].map(([x, y], i) => `<path class="sky-bird b${i % 3}" d="M${x - 22} ${y}Q${x - 9} ${y - 15} ${x} ${y}Q${x + 9} ${y - 15} ${x + 22} ${y}" fill="none" stroke="${K.ink}" stroke-width="4" stroke-linecap="round"/>`).join('');
+    return `<div class="layer lv-layer" id="L-skyfx" data-par="0.05"><svg class="lvsky-svg" viewBox="-1600 0 6400 1300" preserveAspectRatio="none" aria-hidden="true">
+<defs>
+  <linearGradient id="lv-skyg" x1="0" y1="0" x2="0" y2="1"><stop id="lv-s0" offset="0" stop-color="#8FA3F0"/><stop id="lv-s1" offset=".55" stop-color="#BFCBF8"/><stop id="lv-s2" offset="1" stop-color="#F3EEDF"/></linearGradient>
+  <radialGradient id="lv-sunh" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFF1B8" stop-opacity=".85"/><stop offset=".45" stop-color="#FFD98A" stop-opacity=".28"/><stop offset="1" stop-color="#FFD98A" stop-opacity="0"/></radialGradient>
+  <radialGradient id="lv-moonh" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#EDEBFF" stop-opacity=".5"/><stop offset=".5" stop-color="#B9C0FF" stop-opacity=".16"/><stop offset="1" stop-color="#B9C0FF" stop-opacity="0"/></radialGradient>
+  <clipPath id="lv-moonclip"><path id="lv-moonlit-c" d="M0 0"/></clipPath>
+</defs>
+<rect x="-1600" y="0" width="6400" height="1300" fill="url(#lv-skyg)"/>
+<g id="lv-stars" style="opacity:0">${stars}</g>
+<g id="lv-sun" class="lv-mv" style="opacity:0"><circle r="330" fill="url(#lv-sunh)"/><g class="sun-spin"><use href="#s-quat" x="-78" y="-78" width="156" height="156" fill="#FFE07A" ${OUT(5)}/></g></g>
+<g id="lv-moon" class="lv-mv" style="opacity:0"><circle r="170" fill="url(#lv-moonh)"/><circle r="60" fill="#4C5399"/><path id="lv-moonlit" d="M0 0" fill="${K.cream}"/><g clip-path="url(#lv-moonclip)" fill="#DDD3B2"><circle cx="-14" cy="-16" r="11"/><circle cx="18" cy="8" r="8"/><circle cx="-8" cy="26" r="6"/><circle cx="22" cy="-26" r="5"/></g><circle r="60" fill="none" ${OUT(5)}/></g>
+<g id="lv-clouds" style="fill:#F8F2E0">${clouds}</g>
+<g id="lv-birds">${birds}</g>
+<g id="lv-fx"></g>
+</svg></div>`;
+  };
+  // the lit part of the moon: k = illuminated fraction, waxing = lit on the right
+  A.moonPath = (k, waxing, r = 60) => {
+    const rx = r * Math.abs(1 - 2 * k), sweep = k < 0.5 ? 0 : 1;
+    const d = `M0 ${-r}A${r} ${r} 0 0 1 0 ${r}A${f(rx)} ${r} 0 0 ${sweep} 0 ${-r}Z`;
+    return waxing ? d : `M0 ${-r}A${r} ${r} 0 0 0 0 ${r}A${f(rx)} ${r} 0 0 ${1 - sweep} 0 ${-r}Z`;
+  };
+  // fireworks: a burst = rays + sparks, animated by CSS (scale up, fade)
+  A.firework = (x, y, col, delay) => {
+    const rays = Array.from({ length: 12 }, (_, i) => { const a = (i / 12) * 6.283; return `<path d="M${f(Math.cos(a) * 30)} ${f(Math.sin(a) * 30)}L${f(Math.cos(a) * 84)} ${f(Math.sin(a) * 84)}" stroke="${col}" stroke-width="7" stroke-linecap="round"/><circle cx="${f(Math.cos(a + 0.26) * 104)}" cy="${f(Math.sin(a + 0.26) * 104)}" r="5" fill="${K.cream}"/>`; }).join('');
+    return `<g transform="translate(${x} ${y})"><g class="lv-burst" style="animation-delay:${delay}s">${rays}<circle r="8" fill="${K.cream}"/></g></g>`;
+  };
+  A.bats = () => [[-520, 430, 0], [-380, 380, 0.7], [700, 410, 0.3], [860, 460, 1.1]].map(([x, y, d]) => `<g transform="translate(${x} ${y})"><g class="lv-bat" style="animation-delay:${-d}s"><path d="M0 0Q-10 -14 -30 -10Q-24 -2 -18 2Q-10 -2 -6 4Q-2 -2 0 2Q2 -2 6 4Q10 -2 18 2Q24 -2 30 -10Q10 -14 0 0Z" fill="${K.ink}"/></g></g>`).join('');
+
+  // the sea layer: a small sailboat crossing the horizon (y 690), a lantern at its mast at night
+  A.boat = () => `<g id="lv-boat" class="lv-anim"><g class="lv-drift"><g transform="translate(-1300 690)">
+  <path d="M-42 -6H46L34 12H-30Z" fill="${K.red}" ${OUT(4)}/><path d="M0 -8V-92" stroke="${K.ink}" stroke-width="4" stroke-linecap="round"/>
+  <path d="M4 -88L4 -16L46 -16Z" fill="${K.cream}" ${OUT(4)}/><path d="M-4 -80L-4 -16L-36 -16Z" fill="${K.pale}" ${OUT(4)}/>
+  <circle class="lv-boat-l" cx="0" cy="-96" r="5" fill="#FFE07A" style="opacity:0"/></g></g></g>`;
+  // the dunes layer: two tiny beach walkers (silhouettes) crossing very slowly
+  A.walkers = () => `<g id="lv-walkers" class="lv-anim"><g class="lv-drift2"><g transform="translate(-1500 905)">
+  <g fill="${K.ink}"><circle cx="0" cy="-34" r="6"/><path d="M-6 -27H6L8 -8H3L2 0H-2L-3 -8H-8Z"/><circle cx="30" cy="-30" r="5"/><path d="M25 -24H35L37 -6H32L31 0H28L27 -6H23Z"/></g>
+  <path d="M8 -20Q16 -22 24 -18" stroke="${K.ink}" stroke-width="3" fill="none" stroke-linecap="round"/></g></g></g>`;
+
+  /* ================================================================== kiosk overlay (main layer): tint + glow */
+  // The tint is drawn ONLY where the kiosk itself is painted (awning bar, awning + wall + posts, the deck), so its edges are the kiosk's own
+  // edges: the sea, the dunes and the sky have their own tints and are never tinted twice. Rects do not overlap (translucent overlaps would show).
+  A.tint = () => `<svg id="lv-tint" class="wsvg lv-tint" viewBox="0 0 3200 1300" aria-hidden="true"><rect x="418" y="94" width="2764" height="36"/><rect x="440" y="130" width="2720" height="990"/><rect x="-900" y="1120" width="5000" height="700"/></svg>`;
+  // Lights that must stay bright above the night tint. Everything is a plain shape (no SVG filters: they are expensive on phones).
+  A.bulbs = (cols = ['#FFE9A6']) => {
+    let bulbs = '';
+    for (let i = 0; i < 54; i++) { const x = 470 + i * 50, c = cols[i % cols.length]; bulbs += `<circle cx="${x}" cy="402" r="26" fill="${c}" opacity=".22"/><circle cx="${x}" cy="402" r="11" fill="${c}" opacity=".85"/><circle cx="${x}" cy="402" r="5" fill="#FFFBE6"/>`; }
+    return bulbs;
+  };
+  A.glow = (o = {}) => {
+    const bulbs = A.bulbs(o.bulbColors);
+    return `<svg id="lv-glow" class="wsvg lv-glow" viewBox="0 0 3200 1300" aria-hidden="true">
+<defs>
+  <radialGradient id="lvg-warm" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFD98A" stop-opacity=".62"/><stop offset=".55" stop-color="#FFC15E" stop-opacity=".18"/><stop offset="1" stop-color="#FFC15E" stop-opacity="0"/></radialGradient>
+  <radialGradient id="lvg-soft" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#FFF3C8" stop-opacity=".34"/><stop offset="1" stop-color="#FFF3C8" stop-opacity="0"/></radialGradient>
+  <linearGradient id="lvg-wash" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD98A" stop-opacity=".3"/><stop offset="1" stop-color="#FFD98A" stop-opacity="0"/></linearGradient>
+</defs>
+<g id="lvg-lights" style="opacity:0">
+  <rect x="480" y="388" width="2240" height="330" fill="url(#lvg-wash)"/>
+  <ellipse cx="790" cy="640" rx="230" ry="300" fill="url(#lvg-warm)"/>
+  <circle cx="790" cy="452" r="120" fill="url(#lvg-warm)"/>
+  <ellipse cx="2300" cy="580" rx="300" ry="220" fill="url(#lvg-soft)"/>
+  <g id="lvg-bulbs">${bulbs}</g>
+  <g id="lvg-lantern"></g>
+  <g id="lvg-sign"></g>
+  <g id="lvg-drop"></g>
+  <g id="lvg-props"></g>
+</g>
+</svg>`;
+  };
+
+  /* ================================================================== physical decor on the wall (world-back) */
+  A.clock = (x = 2030, y = 488) => {
+    let ticks = '';
+    for (let i = 0; i < 12; i++) { const a = (i / 12) * 6.283, r1 = i % 3 ? 25 : 22, r2 = 29; ticks += `<path d="M${f(Math.sin(a) * r1)} ${f(-Math.cos(a) * r1)}L${f(Math.sin(a) * r2)} ${f(-Math.cos(a) * r2)}" stroke="${K.ink}" stroke-width="${i % 3 ? 2.5 : 4}" stroke-linecap="round"/>`; }
+    return `<g id="lv-clock" class="hot" role="button" tabindex="-1" aria-label="L’horloge du kiosque" transform="translate(${x} ${y})"><g class="lift">
+  <circle r="40" fill="${K.red}" ${OUT(5)}/><circle r="32" fill="${K.paper}" stroke="${K.ink}" stroke-width="3"/>${ticks}
+  <g id="lv-hh"><path d="M0 5V-16" stroke="${K.ink}" stroke-width="5" stroke-linecap="round"/></g>
+  <g id="lv-mh"><path d="M0 6V-25" stroke="${K.ink}" stroke-width="3.5" stroke-linecap="round"/></g>
+  <circle r="4.5" fill="${K.red}" stroke="${K.ink}" stroke-width="2.5"/>
+</g></g>`;
+  };
+  // the sign hanging on the left post: "OUVERT" by day, a glowing neon at night; it says "CHEZ <name>" for Mouette / Légende members
+  A.signBody = (x = 350, y = 500, w = 170) => `<g id="lv-sign" class="hot" role="button" tabindex="-1" aria-label="L’enseigne du kiosque" transform="translate(${x} ${y})"><g class="lift">
+  <path d="M${w / 2 + 90} -34H${-w / 2 + 6}" stroke="${K.ink}" stroke-width="6" stroke-linecap="round"/><path d="M${-w / 2 + 26} -34V-2M${w / 2 - 26} -34V-2" stroke="${K.ink}" stroke-width="4"/>
+  <rect x="${-w / 2}" y="-6" width="${w}" height="66" rx="14" fill="#1E2050" ${OUT(5)}/><rect x="${-w / 2 + 7}" y="1" width="${w - 14}" height="52" rx="9" fill="none" stroke="#5A62B8" stroke-width="2" stroke-dasharray="3 5"/>
+  <text id="lv-sign-t" x="0" y="44" text-anchor="middle" ${FONT} font-size="46" letter-spacing="3" fill="#5A62B8">OUVERT</text>
+</g></g>`;
+  A.signGlow = (text, x = 350, y = 500, tone = '#FF7BAC') => `<g transform="translate(${x} ${y})">
+  <text x="0" y="44" text-anchor="middle" ${FONT} font-size="46" letter-spacing="3" fill="none" stroke="${tone}" stroke-width="16" stroke-opacity=".16" stroke-linejoin="round">${text}</text>
+  <text x="0" y="44" text-anchor="middle" ${FONT} font-size="46" letter-spacing="3" fill="none" stroke="${tone}" stroke-width="8" stroke-opacity=".32" stroke-linejoin="round">${text}</text>
+  <text x="0" y="44" text-anchor="middle" ${FONT} font-size="46" letter-spacing="3" fill="#FFF2F7">${text}</text></g>`;
+  // weekly drop board (chalk on a wooden frame), hung from the awning between the menu and the vestiaire
+  A.dropBody = (x = 2584, y = 430) => `<g id="lv-drop" class="hot" role="button" tabindex="-1" aria-label="Le prochain drop" transform="translate(${x} ${y})"><g class="lift">
+  <path d="M-52 -46L-42 6M52 -46L42 6" stroke="${K.ink}" stroke-width="4"/>
+  <rect x="-66" y="0" width="132" height="152" rx="10" fill="#C89A5B" ${OUT(5)}/><rect x="-55" y="11" width="110" height="130" rx="5" fill="${K.ink}"/>
+  <text x="0" y="52" text-anchor="middle" ${FONT} font-size="42" letter-spacing="2" fill="${K.cream}">DROP</text>
+  <text id="lv-drop-n" x="0" y="76" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="600" fill="#CFD5F6">Drop d’automne</text>
+  <path d="M-38 88H38" stroke="#CFD5F6" stroke-width="1.5" stroke-dasharray="2 4" opacity=".6"/>
+  <text id="lv-drop-t" x="0" y="112" text-anchor="middle" ${MONO} font-size="15.5" font-weight="500" fill="${K.yellow}">--</text>
+  <text id="lv-drop-s" x="0" y="131" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#9EA6D8" letter-spacing="1">PROCHAIN DROP</text>
+</g></g>`;
+  A.dropGlow = (x = 2584, y = 430) => `<g transform="translate(${x} ${y})"><rect x="-60" y="4" width="120" height="144" rx="8" fill="none" stroke="${K.yellow}" stroke-width="10" stroke-opacity=".18"/><rect x="-60" y="4" width="120" height="144" rx="8" fill="none" stroke="${K.yellow}" stroke-width="3" stroke-opacity=".7" class="lv-drop-edge"/></g>`;
+
+  /* ================================================================== deck life: the crab */
+  A.crab = (x = 230, y = 1146) => `<g id="lv-crab" class="hot" role="button" tabindex="-1" aria-label="Un crabe" transform="translate(${x} ${y})"><g class="lv-walk"><g class="lift">
+  <g fill="none" stroke="${K.ink}" stroke-width="4" stroke-linecap="round"><path d="M-18 6L-32 14M-14 10L-26 22M14 10L26 22M18 6L32 14"/></g>
+  <path d="M-30 -8Q-40 -24 -28 -30Q-18 -22 -22 -8" fill="${K.red}" ${OUT(4)}/><path d="M30 -8Q40 -24 28 -30Q18 -22 22 -8" fill="${K.red}" ${OUT(4)}/>
+  <ellipse cx="0" cy="2" rx="26" ry="16" fill="${K.red}" ${OUT(5)}/><path d="M-10 -12V-22M10 -12V-22" stroke="${K.ink}" stroke-width="4"/>
+  <circle cx="-10" cy="-25" r="5" fill="#fff" ${OUT(3)}/><circle cx="10" cy="-25" r="5" fill="#fff" ${OUT(3)}/><circle cx="-10" cy="-25" r="2" fill="${K.ink}"/><circle cx="10" cy="-25" r="2" fill="${K.ink}"/>
+</g></g></g>`;
+
+  /* ================================================================== counter (front layer): loyalty decor + feast props */
+  // one sticker per badge earned, stuck on the counter front (the brand badge art, slightly rotated)
+  A.stickers = (defs, earned) => {
+    const rot = [-7, 5, -4, 8, -9, 4, -5, 7, -3];
+    // each sticker gets its own brand colours so they stay readable on the blue checkered counter
+    const pal = [[K.red, K.cream], [K.yellow, K.ink], [K.teal, K.cream], [K.pink, K.ink], [K.orange, K.ink], ['#3E52CF', K.cream], [K.cream, K.red], [K.red, K.cream], [K.yellow, K.ink]];
+    return defs.map((b, i) => {
+      if (!earned[b.id]) return '';
+      const x = 1730 + i * 92, y = 996, [bg, fg] = pal[i % pal.length];
+      const art = D.badge(b).replace('<svg ', '<svg width="120" height="120" ').replace(`fill="${K.blue}"`, `fill="${bg}"`).replace(`fill="${K.cream}"`, `fill="${fg}"`);
+      return `<g transform="translate(${x} ${y}) rotate(${rot[i % rot.length]} 40 40)"><g transform="scale(.68)"><ellipse cx="60" cy="112" rx="46" ry="7" fill="#1b1820" opacity=".25"/>${art}</g></g>`;
+    }).join('');
+  };
+  A.trophy = (x = 1930, y = 880) => `<g id="lv-trophy" transform="translate(${x} ${y})">
+  <path d="M-26 0L-32 -66H32L26 0Z" fill="${K.yellow}" ${OUT(5)}/><path d="M-20 -6L-24 -60M0 -6V-60M20 -6L24 -60" stroke="${K.orange}" stroke-width="5"/>
+  <use href="#pf1" x="-30" y="-108" width="44" height="44"/><use href="#pf3" x="-6" y="-116" width="46" height="46"/><use href="#pf0" x="-18" y="-92" width="40" height="40"/>
+  <path d="M-32 -66H32" stroke="${K.ink}" stroke-width="5"/><ellipse cx="0" cy="2" rx="34" ry="6" fill="#1b1820" opacity=".2"/></g>`;
+  A.pumpkins = (x = 1990, y = 880) => {
+    const one = (dx, s, face) => `<g transform="translate(${dx} 0) scale(${s})"><path d="M0 -62Q4 -74 12 -78" stroke="${K.ink}" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <ellipse cx="-26" cy="-32" rx="24" ry="32" fill="#F27B10" ${OUT(5)}/><ellipse cx="26" cy="-32" rx="24" ry="32" fill="#F27B10" ${OUT(5)}/><ellipse cx="0" cy="-32" rx="26" ry="35" fill="${K.orange}" ${OUT(5)}/>
+    ${face ? `<path class="lv-face" d="M-16 -44L-6 -36L-20 -34ZM16 -44L6 -36L20 -34ZM-16 -18Q0 -6 16 -18L10 -24L4 -16L0 -24L-4 -16L-10 -24Z" fill="#FFF0A8" ${OUT(2.5)}/>` : ''}</g>`;
+    return `<g transform="translate(${x} ${y})">${one(0, 0.95, true)}${one(74, 0.68, false)}</g>`;
+  };
+  A.pumpkinFace = (x = 1990, y = 880) => `<g transform="translate(${x} ${y}) scale(.95)"><path d="M-16 -44L-6 -36L-20 -34ZM16 -44L6 -36L20 -34ZM-16 -18Q0 -6 16 -18L10 -24L4 -16L0 -24L-4 -16L-10 -24Z" fill="#FFE07A"/><ellipse cx="0" cy="-30" rx="50" ry="46" fill="url(#lvg-warm)"/></g>`;
+  A.gifts = (x = 1990, y = 880) => `<g transform="translate(${x} ${y})">
+  <rect x="-2" y="-42" width="58" height="42" rx="4" fill="${K.blue}" ${OUT(5)}/><path d="M27 -42V0" stroke="${K.yellow}" stroke-width="10"/><path d="M-2 -21H56" stroke="${K.yellow}" stroke-width="10"/>
+  <rect x="-56" y="-30" width="50" height="30" rx="4" fill="${K.red}" ${OUT(5)}/><path d="M-31 -30V0" stroke="${K.cream}" stroke-width="9"/>
+  <rect x="-40" y="-64" width="40" height="34" rx="4" fill="${K.teal}" ${OUT(5)}/><path d="M-20 -64V-30" stroke="${K.pink}" stroke-width="8"/>
+  <path d="M-20 -64Q-38 -84 -30 -72Q-24 -66 -20 -64Q-16 -66 -10 -72Q-2 -84 -20 -64Z" fill="${K.pink}" ${OUT(3.5)}/></g>`;
+  A.hearts = (x = 1990, y = 880) => `<g transform="translate(${x} ${y})"><path d="M0 -6C-34 -32 -26 -66 -6 -66C4 -66 6 -58 6 -54C6 -58 8 -66 18 -66C38 -66 46 -32 6 -6Z" fill="${K.red}" ${OUT(5)} transform="translate(-4 0) scale(1.15)"/><path d="M40 -8C22 -22 26 -40 36 -40C42 -40 42 -35 42 -33C42 -35 43 -40 49 -40C60 -40 62 -22 42 -8Z" fill="${K.pink}" ${OUT(4)}/></g>`;
+
+  /* ---- hanging / wall props (world-back) ---- */
+  A.cobweb = (x = 484, y = 344) => `<g transform="translate(${x} ${y})" fill="none" stroke="#EDE8FF" stroke-width="3" stroke-linecap="round" opacity=".85"><path d="M0 0L150 0M0 0L138 62M0 0L96 108M0 0L44 138M0 0L0 150"/><path d="M40 0Q34 34 0 40M80 0Q70 60 0 82M120 0Q104 88 0 124M60 44Q36 60 44 86"/></g>`;
+  A.spider = (x = 560, y = 384) => `<g transform="translate(${x} ${y})"><g class="lv-swing"><path d="M0 0V54" stroke="#EDE8FF" stroke-width="2.5"/><g transform="translate(0 66)"><circle r="11" fill="${K.ink}"/><circle cy="-11" r="6.5" fill="${K.ink}"/><g stroke="${K.ink}" stroke-width="3" stroke-linecap="round" fill="none"><path d="M-8 -2L-22 -12M-9 2L-24 4M-8 8L-22 20M8 -2L22 -12M9 2L24 4M8 8L22 20"/></g><circle cx="-2.5" cy="-13" r="1.6" fill="#FFE07A"/><circle cx="2.5" cy="-13" r="1.6" fill="#FFE07A"/></g></g></g>`;
+  A.garland = (x0 = 480, x1 = 2720, y = 398) => {
+    let tufts = '', berries = '';
+    const n = Math.round((x1 - x0) / 34), sag = 34;
+    for (let i = 0; i <= n; i++) { const t = i / n, x = x0 + (x1 - x0) * t, yy = y + sag * Math.sin(Math.PI * t) * 0.0 + Math.sin(i * 1.7) * 3; tufts += `<path d="M${f(x - 12)} ${f(yy - 2)}Q${f(x)} ${f(yy + 24)} ${f(x + 12)} ${f(yy - 2)}" fill="none" stroke="#1F8A73" stroke-width="9" stroke-linecap="round"/><path d="M${f(x - 10)} ${f(yy)}Q${f(x)} ${f(yy + 18)} ${f(x + 10)} ${f(yy)}" fill="none" stroke="${K.teal}" stroke-width="5" stroke-linecap="round"/>`; if (i % 4 === 2) berries += `<circle cx="${f(x)}" cy="${f(yy + 20)}" r="6" fill="${K.red}" ${OUT(2.5)}/>`; }
+    return `<g>${tufts}${berries}</g>`;
+  };
+  A.wreath = (x = 1175, y = 482) => {
+    let leaves = '';
+    for (let i = 0; i < 18; i++) { const a = (i / 18) * 6.283; leaves += `<ellipse cx="${f(Math.cos(a) * 34)}" cy="${f(Math.sin(a) * 34)}" rx="14" ry="7" transform="rotate(${f((a * 180) / Math.PI + 90)} ${f(Math.cos(a) * 34)} ${f(Math.sin(a) * 34)})" fill="${i % 2 ? '#1F8A73' : K.teal}" ${OUT(3)}/>`; }
+    return `<g transform="translate(${x} ${y})">${leaves}<circle cx="-20" cy="24" r="6" fill="${K.red}" ${OUT(2.5)}/><circle cx="-8" cy="30" r="6" fill="${K.red}" ${OUT(2.5)}/><path d="M0 34L-16 62L-4 56L0 70L4 56L16 62Z" fill="${K.red}" ${OUT(3.5)}/></g>`;
+  };
+  A.streamers = () => {
+    const cols = [K.red, K.yellow, K.blue, K.pink, K.teal, K.orange, K.red, K.blue];
+    return cols.map((c, i) => { const x = 620 + i * 300 + (i % 2) * 40, len = 90 + (i * 37) % 60; let d = `M${x} 388`; for (let k = 1; k <= 6; k++) d += `Q${x + (k % 2 ? 12 : -12)} ${388 + (len / 6) * (k - 0.5)} ${x} ${388 + (len / 6) * k}`; return `<path d="${d}" fill="none" stroke="${c}" stroke-width="7" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${K.ink}" stroke-width="2" stroke-linecap="round" opacity=".5" transform="translate(2 1)"/>`; }).join('');
+  };
+  A.heartBunting = (x0, x1, y = 398, n = 8) => {
+    let hs = '';
+    for (let i = 1; i < n; i++) { const t = i / n, x = x0 + (x1 - x0) * t, yy = y + 30 * Math.sin(Math.PI * t); hs += `<g transform="translate(${f(x)} ${f(yy + 22)}) scale(1.2)"><path d="${HEART}" fill="${i % 2 ? K.red : K.pink}" ${OUT(3)}/></g>`; }
+    return hs;
+  };
+  // the tricolour rosette for the 14th of July, a heart pin for Valentine's...
+  A.cockade = (x = 1000, y = 470) => `<g transform="translate(${x} ${y})"><circle r="26" fill="${K.red}" ${OUT(4)}/><circle r="17" fill="${K.cream}" ${OUT(3)}/><circle r="8" fill="${K.blue}" ${OUT(3)}/></g>`;
+
+  /* ================================================================== the seagull's accessories (coordinates of the head: hat crown top ~ y -480) */
+  A.accessory = (name) => {
+    switch (name) {
+      // a floppy santa hat: dome + tail drooping backwards + pompom, white fur trim
+      case 'santa': return `<g class="acc"><path d="M-30 -462C-36 -494 -12 -516 22 -514C50 -512 58 -490 50 -460Z" fill="${K.red}" ${OUT(5)}/><path d="M-14 -506C-50 -516 -90 -504 -100 -470C-90 -482 -66 -492 -42 -494Z" fill="${K.red}" ${OUT(5)}/><circle cx="-102" cy="-464" r="13" fill="#fff" ${OUT(5)}/><path d="M-40 -466Q6 -486 56 -464L52 -446Q6 -464 -38 -448Z" fill="#fff" ${OUT(5)}/></g>`;
+      // a bent witch hat (kept short: the awning hides whatever rises above the hat by more than ~35 units)
+      case 'witch': return `<g class="acc"><path d="M-72 -458Q6 -484 94 -456Q102 -442 86 -438Q6 -460 -64 -438Q-82 -442 -72 -458Z" fill="#2A2340" ${OUT(5)}/><path d="M-30 -462L-16 -504Q-14 -510 -6 -510H14Q22 -510 24 -502L40 -462Z" fill="#2A2340" ${OUT(5)}/><path d="M-14 -504Q-48 -512 -74 -486Q-46 -496 -8 -490Z" fill="#2A2340" ${OUT(5)}/><path d="M-30 -478L34 -478L38 -462L-32 -462Z" fill="#8A4FD6" ${OUT(4)}/><rect x="-4" y="-482" width="22" height="20" rx="3" fill="#FFD65C" ${OUT(3)}/></g>`;
+      case 'party': return `<g class="acc"><path d="M-24 -464L8 -534L40 -464Z" fill="${K.yellow}" ${OUT(5)}/><path d="M-10 -494L26 -502M-16 -478L34 -488" stroke="${K.red}" stroke-width="7" stroke-linecap="round"/><circle cx="8" cy="-538" r="10" fill="${K.pink}" ${OUT(4)}/></g>`;
+      // a heart pin on the front of the crown
+      case 'heart': return `<g class="acc"><g transform="translate(8 -466) scale(1.35) rotate(-8)"><path d="${HEART}" fill="${K.red}" ${OUT(2.6)}/></g></g>`;
+      // the tricolour rosette
+      case 'cockade': return `<g class="acc"><g transform="translate(10 -468)"><circle r="16" fill="${K.red}" ${OUT(3.5)}/><circle r="10.5" fill="${K.cream}" ${OUT(3)}/><circle r="5" fill="${K.blue}" ${OUT(2.5)}/></g></g>`;
+      default: return '';
+    }
+  };
+
+  /* ================================================================== weather layers (screen space, HTML) */
+  // seamless tiles: the tile is translated by exactly (-tileW, +tileH) per loop, so the slant of the streaks matches the motion.
+  const uri = (svg) => 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+  A.rainTile = (w, h, n, len, wd, col, seed) => {
+    const r = M.rng(seed); let s = '';
+    for (let i = 0; i < n; i++) { const x = r() * w, y = r() * h, dx = (len * w) / h; for (const ox of [0, w, -w]) s += `<path d="M${(x + ox).toFixed(1)} ${y.toFixed(1)}l${(-dx).toFixed(1)} ${len}" stroke="${col}" stroke-width="${wd}" stroke-linecap="round"/>`; }
+    return uri(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${s}</svg>`);
+  };
+  A.snowTile = (w, h, n, rmin, rmax, seed) => {
+    const r = M.rng(seed); let s = '';
+    for (let i = 0; i < n; i++) { const x = r() * w, y = r() * h, rr = rmin + r() * (rmax - rmin); for (const oy of [0, h, -h]) for (const ox of [0, w, -w]) if (ox === 0 || oy === 0 || rr > 0) s += `<circle cx="${(x + ox).toFixed(1)}" cy="${(y + oy).toFixed(1)}" r="${rr.toFixed(1)}" fill="#fff" fill-opacity="${(0.55 + r() * 0.4).toFixed(2)}"/>`; }
+    return uri(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${s}</svg>`);
+  };
+  A.leafTile = (w, h, n, seed, cols) => {
+    const r = M.rng(seed); let s = '';
+    for (let i = 0; i < n; i++) { const x = r() * w, y = r() * h, a = r() * 360, c = cols[i % cols.length], sc = 0.42 + r() * 0.42; for (const oy of [0, h, -h]) for (const ox of [0, w, -w]) s += `<path transform="translate(${(x + ox).toFixed(1)} ${(y + oy).toFixed(1)}) rotate(${a.toFixed(0)}) scale(${sc.toFixed(2)})" d="M0 -9Q9 -2 0 10Q-9 -2 0 -9Z" fill="${c}" stroke="#26232b" stroke-width="1.6" stroke-linejoin="round"/>`; }
+    return uri(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${s}</svg>`);
+  };
+  A.heartTile = (w, h, n, seed) => {
+    const r = M.rng(seed); let s = '';
+    for (let i = 0; i < n; i++) { const x = r() * w, y = r() * h, sc = 0.7 + r() * 0.9, c = i % 2 ? '#DE3F39' : '#F5A3C7'; for (const oy of [0, h, -h]) s += `<path transform="translate(${x.toFixed(1)} ${(y + oy).toFixed(1)}) scale(${sc.toFixed(2)})" d="${HEART}" fill="${c}" stroke="#26232b" stroke-width="2" stroke-linejoin="round"/>`; }
+    return uri(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${s}</svg>`);
+  };
+  A.confettiTile = (w, h, n, seed) => {
+    const r = M.rng(seed), cols = ['#DE3F39', '#FFD65C', '#788CE3', '#F5A3C7', '#2FB59B', '#FF8A1E']; let s = '';
+    for (let i = 0; i < n; i++) { const x = r() * w, y = r() * h, a = r() * 360, c = cols[i % cols.length]; for (const oy of [0, h, -h]) s += `<rect transform="translate(${x.toFixed(1)} ${(y + oy).toFixed(1)}) rotate(${a.toFixed(0)})" x="-4" y="-2.5" width="8" height="5" rx="1" fill="${c}"/>`; }
+    return uri(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">${s}</svg>`);
+  };
+})((window.Cornsty = window.Cornsty || {}));
+
+;
+/* src/js/living.js */
+/* Cornsty - the living kiosk, part 3/4: the ENGINE.  An OPTIONAL layer over the finished kiosk:
+     day and night (sunrise/sunset of the visitor's own clock), moon phase, weather, the feasts of the year, a drop board with a real
+     countdown, and a decor that grows with the visitor's loyalty tier.
+
+   Rules this module keeps, so it can never disturb the rest of the site (now or when the site grows):
+     - ADDITIVE ONLY: it adds its own layers / groups (all marked lv-*) and removes them on unmount(); it never edits the core art.
+     - ONE-WAY: the core never depends on it. The few core hooks (boot, menu, greeting) are guarded `C.living && ...`.
+     - CHEAP: no per-frame work; colours change only when they visibly change; particles are compositor-only CSS transforms;
+       a governor drops to "calm" (static look) if the frame rate suffers; nothing moves under prefers-reduced-motion.
+     - SAFE: every entry point is wrapped; any error unmounts the module instead of breaking the shop.
+     - OFF SWITCHES: cfg.living.enabled = false, window.CORNSTY_LIVING = false, or the visitor's menu (Complet / Calme / Désactivé). */
+(function (C) {
+  'use strict';
+  const U = C.util, M = C.livingModel, A = C.livingArt;
+  const $ = U.$, clamp = M.clamp, lerp = M.lerp, smooth = M.smooth;
+  const cfg = () => (C.cfg && C.cfg.living) || {};
+
+  // level: 2 = full, 1 = lite (no weather particles, no fireworks: the heavy, full-screen animated layers), 0 = calm (the same look, standing still)
+  const L = (C.living = { version: 1, mounted: false, mode: 'auto', level: 2, calm: false, lite: false, failed: false, over: {}, state: null, gv: { bad: 0 } });
+  const last = {};                                         // last values written to the DOM (skip identical writes)
+  let els = {}, nodes = [], timers = {}, offTicker = null, offBus = [], thunderT = null, fwT = null;
+  const helloed = {};
+
+  const fail = (where, e) => { if (L.failed) return; L.failed = true; try { console.warn('[living] disabled after an error in ' + where, e); L.unmount(); } catch (e2) { /* ignore */ } };
+  const guard = (name, fn) => (...a) => { try { return fn(...a); } catch (e) { fail(name, e); } };
+
+  /* ------------------------------------------------------------------ what is the kiosk like right now? */
+  const PRESET = { clear: { type: 'clear', cloud: 0.1, intensity: 0 }, clouds: { type: 'clouds', cloud: 0.85, intensity: 0 }, rain: { type: 'rain', cloud: 0.9, intensity: 0.8 }, storm: { type: 'storm', cloud: 1, intensity: 1 }, snow: { type: 'snow', cloud: 0.85, intensity: 0.8 }, fog: { type: 'fog', cloud: 0.6, intensity: 0.85 } };
+  const events = () => cfg().events || [];
+  // the sky you can see is the strip left of the kiosk at the machine station (sky x about -880..-450 on desktops): both arcs live inside it
+  const SKY_X0 = -880, SKY_X1 = -480;
+  function compute() {
+    const c = cfg(), o = L.over, d = new Date(), sun = M.sunTimes(d, c.lat);
+    let hour = M.hourOf(d);
+    if (o.time && o.time !== 'real') hour = /^\d{1,2}:\d{2}$/.test(o.time) ? +o.time.split(':')[0] + +o.time.split(':')[1] / 60 : (M.momentHour(o.time, sun) ?? hour);
+    const season = M.seasonAt(d);
+    const ev = o.event === 'none' ? null : o.event && o.event !== 'auto' ? events().find((e) => e.id === o.event) || null : M.eventAt(d, events());
+    let weather;
+    if (o.weather && o.weather !== 'auto') weather = PRESET[o.weather] || PRESET.clear;
+    else if ((c.weather || {}).mode === 'real' && L.realWeather) weather = L.realWeather;
+    else if ((c.weather || {}).mode === 'clear' || (c.weather || {}).mode === 'off') weather = PRESET.clear;
+    else weather = M.pseudoWeather(d, hour, season);
+    if (ev && ev.particles === 'snow' && weather.type === 'clear' && o.weather == null && (c.weather || {}).mode !== 'real') weather = Object.assign({}, weather, { cloud: Math.max(weather.cloud, 0.5) });
+    const light = M.applyWeather(M.lightAt(hour, sun), weather), moon = M.moon(d), arc = M.moonArc(hour, sun, moon);
+    const f = (hour - sun.sunrise) / (sun.sunset - sun.sunrise), fc = clamp(f, 0, 1), sn = Math.sin(Math.PI * fc);
+    const sunSeen = light.sunVisible === undefined ? 1 : light.sunVisible;
+    const night = light.night, overcastLights = weather.type === 'storm' ? 0.45 : weather.type === 'rain' ? 0.22 : 0;
+    return {
+      d, hour, sun, season, ev, weather, light, moon, moonArc: arc, night,
+      sunPos: { x: lerp(SKY_X0, SKY_X1, fc), y: 690 - 330 * sn + (1 - sn) * 20, s: 1 + (1 - sn) * 0.5, op: f > -0.04 && f < 1.04 ? smooth((f + 0.04) / 0.06) * smooth((1.04 - f) / 0.06) * sunSeen : 0 },
+      moonPos: arc >= 0 ? { x: lerp(SKY_X0, SKY_X1, arc), y: 690 - 300 * Math.sin(Math.PI * arc), op: smooth((night - 0.25) / 0.35) * smooth(arc / 0.06) * smooth((1 - arc) / 0.06) } : { x: 0, y: 900, op: 0 },
+      stars: smooth((night - 0.5) / 0.4) * (1 - weather.cloud * 0.85),
+      lights: clamp(smooth((night - 0.12) / 0.35) + overcastLights, 0, 1),
+      phase: night > 0.9 ? 'night' : hour < sun.noon ? (night > 0.3 ? 'dawn' : 'morning') : light.warm > 0.5 ? 'sunset' : night > 0.3 ? 'dusk' : 'day',
+    };
+  }
+
+  /* ------------------------------------------------------------------ building the layers (once) */
+  const own = (n) => { nodes.push(n); return n; };
+  function build() {
+    const S = C.scene, D = C.draw, K = D.COL;
+    els.sky = own(S.addLayer(A.sky(), 0.05, $('#L-sky')));
+    const q = (s, r = els.sky) => $(s, r);
+    Object.assign(els, {
+      s: [q('#lv-s0'), q('#lv-s1'), q('#lv-s2')], sun: q('#lv-sun'), moon: q('#lv-moon'), moonLit: q('#lv-moonlit'), moonClip: q('#lv-moonlit-c'), stars: q('#lv-stars'), clouds: q('#lv-clouds'),
+      cl: U.$$('.lv-cl', els.sky), birds: q('#lv-birds'), fx: q('#lv-fx'),
+    });
+    // sea + dunes: a tint of their own (same colour as the kiosk), plus a boat / two walkers
+    const sea = $('.sea-svg'), dunes = $('.dunes-svg');
+    sea.insertAdjacentHTML('beforeend', A.boat());
+    els.boat = own(sea.lastElementChild);
+    els.seaTint = own(U.svg('rect', { class: 'lv-seatint', x: -1600, y: 688, width: 6400, height: 262, fill: 'rgba(0,0,0,0)' })); sea.append(els.seaTint);
+    dunes.insertAdjacentHTML('beforeend', A.walkers());
+    els.walkers = own(dunes.lastElementChild);
+    els.duneTints = U.$$('path', dunes).filter((p) => !p.closest('g')).map((p) => { const c = p.cloneNode(false); c.setAttribute('class', 'lv-dunetint'); c.setAttribute('fill', 'rgba(0,0,0,0)'); c.setAttribute('stroke', 'none'); dunes.append(c); return own(c); });
+    els.boatLamp = $('.lv-boat-l', els.boat);
+    // the kiosk: tint (composited on its own so recolouring never repaints the scene) + glow above it
+    S.main.insertAdjacentHTML('beforeend', A.tint()); els.tint = own(S.main.lastElementChild); els.surf = $('#surfboard', S.world); els.stageBg = S.stage.style.background;
+    S.main.insertAdjacentHTML('beforeend', A.glow()); els.glow = own(S.main.lastElementChild);
+    Object.assign(els, { lights: $('#lvg-lights', els.glow), bulbs: $('#lvg-bulbs', els.glow), signGlow: $('#lvg-sign', els.glow), dropGlowG: $('#lvg-drop', els.glow), propsGlow: $('#lvg-props', els.glow) });
+    // physical decor: wall (clock, sign, drop board, crab) before the bunting, feast props, counter-top decor
+    const back = S.world;
+    back.querySelector('#deco').insertAdjacentHTML('beforebegin', `<g id="lv-evwall"></g><g id="lv-wall">${A.clock()}<g id="lv-signwrap"></g>${A.dropBody()}${A.crab()}</g>`);
+    els.evwall = own(back.querySelector('#lv-evwall')); els.wall = own(back.querySelector('#lv-wall')); els.signwrap = $('#lv-signwrap', els.wall);
+    const frontSvg = $('#world-front'); frontSvg.querySelector('#counter').insertAdjacentHTML('afterend', '<g id="lv-front"><g id="lv-stickers"></g><g id="lv-trophy-w"></g><g id="lv-evfront"></g></g>');
+    els.front = own(frontSvg.querySelector('#lv-front')); els.stickers = $('#lv-stickers', els.front); els.trophy = $('#lv-trophy-w', els.front); els.evfront = $('#lv-evfront', els.front);
+    els.hh = $('#lv-hh', els.wall); els.mh = $('#lv-mh', els.wall); els.dropT = $('#lv-drop-t', els.wall); els.dropN = $('#lv-drop-n', els.wall); els.dropS = $('#lv-drop-s', els.wall);
+    // stage: vignette + weather (screen space, under the UI)
+    const grain = $('.grain', S.stage);
+    els.vig = own(U.el('div', { class: 'lv-vig', 'aria-hidden': 'true' })); S.stage.insertBefore(els.vig, grain);
+    els.wx = own(U.el('div', { class: 'lv-wx', 'aria-hidden': 'true', 'data-wx': 'clear' }));
+    els.wx.innerHTML = '<div class="lv-fog"></div><div class="lv-leaves lv-p"></div><div class="lv-snow lv-snow-b lv-r"></div><div class="lv-rain lv-rain-b"></div><div class="lv-snow lv-snow-a"></div><div class="lv-rain lv-rain-a"></div><div class="lv-hearts lv-p lv-up"></div><div class="lv-confetti lv-p"></div><div class="lv-flash"></div>';
+    S.stage.insertBefore(els.wx, grain);
+    const small = innerWidth < 700;
+    const tex = (sel, img, tw, th, dur) => { const n = $(sel, els.wx); n.style.backgroundImage = img; n.style.setProperty('--tw', tw + 'px'); n.style.setProperty('--th', th + 'px'); n.style.animationDuration = dur + 's'; n.hidden = true; return n; };
+    els.rainA = tex('.lv-rain-a', A.rainTile(70, 300, small ? 4 : 5, 26, 2.2, 'rgba(228,236,255,.8)', 3), 70, 300, 0.5);
+    els.rainB = tex('.lv-rain-b', A.rainTile(44, 190, 4, 16, 1.6, 'rgba(210,222,250,.55)', 9), 44, 190, 0.8);
+    els.snowA = tex('.lv-snow-a', A.snowTile(320, 320, 22, 2.2, 4.4, 5), 320, 320, 11);
+    els.snowB = tex('.lv-snow-b', A.snowTile(220, 220, 20, 1.2, 2.4, 8), 220, 220, 15);
+    els.leaves = tex('.lv-leaves', A.leafTile(420, 420, 3, 4, ['#FF8A1E', '#DE3F39', '#FFD65C', '#B8672A']), 420, 420, 30);
+    els.hearts = tex('.lv-hearts', A.heartTile(400, 600, 6, 6), 400, 600, 22);
+    els.confetti = tex('.lv-confetti', A.confettiTile(380, 380, 15, 2), 380, 380, 14);
+    els.fog = $('.lv-fog', els.wx); els.fog.style.setProperty('--lvfog', fogTile()); els.fog.hidden = true; els.flash = $('.lv-flash', els.wx);
+    S.stage.classList.add('lv-on');
+    S.layout();
+  }
+  const fogTile = () => { const r = M.rng(21); let s = ''; for (let i = 0; i < 7; i++) { const x = r() * 900, y = 120 + r() * 520, rx = 180 + r() * 220, ry = 60 + r() * 60; for (const ox of [0, 900, -900]) s += `<ellipse cx="${(x + ox).toFixed(0)}" cy="${y.toFixed(0)}" rx="${rx.toFixed(0)}" ry="${ry.toFixed(0)}" fill="url(#g)"/>`; } return 'url("data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="900" height="700" viewBox="0 0 900 700"><defs><radialGradient id="g"><stop offset="0" stop-color="#EEF1FF" stop-opacity=".62"/><stop offset="1" stop-color="#EEF1FF" stop-opacity="0"/></radialGradient></defs>${s}</svg>`) + '")'; };
+
+  /* ------------------------------------------------------------------ writing the state into the DOM */
+  const set = (key, val, fn) => { if (last[key] === val) return false; last[key] = val; fn(val); return true; };
+  const mv = (el, x, y, s, op) => { el.style.transform = `translate(${x.toFixed(0)}px,${y.toFixed(0)}px) scale(${s.toFixed(2)})`; el.style.opacity = op.toFixed(3); };
+  function render(st) {
+    const l = st.light, grey = (l.cloud || 0) * 0.55;
+    // sky
+    set('sky', l.sky.join(), () => { l.sky.forEach((c, i) => els.s[i].setAttribute('stop-color', c)); C.scene.stage.style.background = l.sky[0]; });        // above the sky layer (wide shot) the stage shows the sky's own top colour
+    set('sun', [st.sunPos.x | 0, st.sunPos.y | 0, st.sunPos.s.toFixed(2), st.sunPos.op.toFixed(2), l.warm.toFixed(2)].join(), () => { mv(els.sun, st.sunPos.x, st.sunPos.y, st.sunPos.s, st.sunPos.op); els.sun.querySelector('use').setAttribute('fill', M.mixHex('#FFE07A', '#FF9A55', clamp(l.warm, 0, 1) * 0.8)); });
+    set('moon', [st.moonPos.x | 0, st.moonPos.y | 0, st.moonPos.op.toFixed(2)].join(), () => mv(els.moon, st.moonPos.x, st.moonPos.y, 1, st.moonPos.op));
+    set('phase', st.moon.k.toFixed(2) + st.moon.waxing, () => { const d = A.moonPath(st.moon.k, st.moon.waxing); els.moonLit.setAttribute('d', d); els.moonClip.setAttribute('d', d); });
+    set('stars', st.stars.toFixed(2), (v) => { els.stars.style.opacity = v; });
+    set('fx', smooth((st.night - 0.3) / 0.3).toFixed(2), (v) => { els.fx.style.opacity = v; });
+    let cloudFill = M.mixHex('#F8F2E0', '#B6BBD2', grey); cloudFill = M.mixHex(cloudFill, l.sky[1], 0.22 * l.warm); cloudFill = M.mixHex(cloudFill, '#5A63B0', st.night * 0.85);
+    set('cloudfill', cloudFill, (v) => { els.clouds.style.fill = v; });
+    set('clouds', (st.weather.cloud || 0).toFixed(2), () => els.cl.forEach((c, i) => { c.style.opacity = clamp(2.2 + (st.weather.cloud || 0) * 6 - i, 0, 1).toFixed(2); }));
+    set('birds', st.night < 0.3 && st.weather.type !== 'rain' && st.weather.type !== 'storm' ? 1 : 0, (v) => { els.birds.style.opacity = v; });
+    // tint over the kiosk, the sea and the dunes
+    const rgba = M.rgba(l.tint);
+    set('tint', rgba, () => { els.tint.style.fill = rgba; if (els.surf) els.surf.style.filter = `brightness(${(1 - l.tint[3] * 0.9).toFixed(2)})`; els.seaTint.style.fill = M.rgba([l.tint[0], l.tint[1], l.tint[2], Math.min(0.6, l.tint[3] * 1.12)]); els.duneTints.forEach((t) => { t.style.fill = rgba; }); });
+    // lights
+    set('lights', st.lights.toFixed(2), (v) => { els.lights.style.opacity = v; els.boatLamp.style.opacity = v > 0.4 ? 1 : 0; });
+    set('vig', (st.night * 0.9).toFixed(2), (v) => { els.vig.style.opacity = v; });
+    // clock
+    clockTick(st);
+    // feasts, weather layers
+    applyEvent(st.ev, st);
+    weatherLayers(st);
+    L.state = st;
+  }
+  function clockTick(st) {
+    const h = Math.floor(st.hour) % 24, m = Math.floor((st.hour % 1) * 60);
+    set('clock', h + ':' + m, () => { els.hh.setAttribute('transform', `rotate(${((h % 12) + m / 60) * 30})`); els.mh.setAttribute('transform', `rotate(${m * 6})`); });
+  }
+
+  /* ---- weather ---- */
+  const showL = (el, on, op) => {
+    clearTimeout(el._t);
+    if (on) { el.hidden = false; requestAnimationFrame(() => { el.style.opacity = op; }); }
+    else if (!el.hidden) { el.style.opacity = 0; el._t = setTimeout(() => { el.hidden = true; }, 2600); }
+  };
+  function weatherLayers(st) {
+    const w = st.weather, ev = st.ev, quiet = L.lite || U.reduced();          // lite (and calm, which implies it): no particles
+    const season = (cfg().seasons || {})[st.season] || {};
+    const rain = w.type === 'rain' || w.type === 'storm' ? clamp(0.4 + 0.6 * w.intensity, 0, 1) : 0;
+    const snowW = w.type === 'snow' ? clamp(0.45 + 0.55 * w.intensity, 0, 1) : 0;
+    const part = ev ? ev.particles : season.particles;
+    const snowE = part === 'snow' && !rain && !snowW ? 0.5 : 0;
+    const key = [rain.toFixed(1), snowW.toFixed(1), snowE, w.type === 'fog', part, quiet, st.night > 0.5].join();
+    if (last.wx === key) return; last.wx = key;
+    els.wx.dataset.wx = w.type;
+    const small = innerWidth < 700;
+    showL(els.rainA, !quiet && rain > 0, rain);
+    showL(els.rainB, !quiet && rain > 0 && !small, rain * 0.85);
+    showL(els.snowA, !quiet && (snowW > 0 || snowE > 0), Math.max(snowW, snowE));
+    showL(els.snowB, !quiet && !small && (snowW > 0 || snowE > 0), Math.max(snowW, snowE) * 0.8);
+    showL(els.fog, w.type === 'fog', 0.85);
+    showL(els.leaves, !quiet && part === 'leaves' && !rain && w.type !== 'fog', 0.9);
+    showL(els.hearts, !quiet && part === 'hearts', 0.95);
+    showL(els.confetti, !quiet && part === 'confetti', 0.9);
+    // thunder
+    clearTimeout(thunderT); thunderT = null;
+    if (!quiet && w.type === 'storm') scheduleThunder();
+    ambience(st);
+  }
+  function scheduleThunder() {
+    clearTimeout(thunderT);
+    thunderT = setTimeout(guard('thunder', () => {
+      if (!L.mounted || document.hidden) return scheduleThunder();
+      els.flash.animate([{ opacity: 0 }, { opacity: 0.65 }, { opacity: 0.1 }, { opacity: 0.5 }, { opacity: 0 }], { duration: 560, easing: 'linear' });
+      if (C.audio && C.audio.thunder && cfg().sound !== false) C.audio.thunder(0.35 + Math.random() * 1.1);
+      scheduleThunder();
+    }), 7000 + Math.random() * 15000);
+  }
+  function ambience(st) {
+    if (!C.audio || !C.audio.ambience || cfg().sound === false) return;
+    const w = st.weather, rain = w.type === 'rain' || w.type === 'storm' ? 0.45 + 0.55 * w.intensity : 0;
+    const crickets = st.night > 0.75 && !rain && w.type !== 'snow' && st.season !== 'winter' ? 1 : 0;
+    C.audio.ambience(L.calm || U.reduced() ? {} : { rain, wind: w.type === 'storm' ? 1 : w.type === 'clouds' ? 0.3 : 0.12, night: crickets });
+  }
+
+  /* ---- feasts ---- */
+  const SLOT_A = 1905;
+  function applyEvent(ev, st) {
+    const key = ev ? ev.id : '';
+    if (last.event === key) return; last.event = key;
+    const S = C.scene;
+    // bunting
+    U.$$('#deco .flag').forEach((g) => { g.style.display = ''; const p = g.querySelector('path'); if (p.dataset.lvo) p.setAttribute('fill', p.dataset.lvo); });
+    if (ev && ev.bunting) U.$$('#deco .flag').forEach((g, i) => { const p = g.querySelector('path'); if (!p.dataset.lvo) p.dataset.lvo = p.getAttribute('fill'); p.setAttribute('fill', ev.bunting[i % ev.bunting.length]); if (ev.id === 'valentin') g.style.display = 'none'; });
+    // string lights
+    els.bulbs.innerHTML = A.bulbs(ev && ev.lights ? ev.lights : undefined);
+    const props = (ev && ev.props) || [];
+    els.evfront.innerHTML = (props.includes('pumpkins') ? A.pumpkins(SLOT_A, 880) : '') + (props.includes('gifts') ? A.gifts(SLOT_A + 40, 880) : '') + (props.includes('hearts') ? A.hearts(SLOT_A + 20, 880) : '');
+    els.evwall.innerHTML = (props.includes('garland') ? A.garland() : '') + (props.includes('wreath') ? A.wreath(1175, 484) : '') + (props.includes('cobweb') ? A.cobweb(484, 392) : '') + (props.includes('spider') ? A.spider(590, 392) : '')
+      + (props.includes('streamers') ? A.streamers() : '') + (props.includes('heartBunting') ? A.heartBunting(1000, 1340, 396, 8) + A.heartBunting(1560, 1900, 396, 8) + A.heartBunting(2120, 2700, 396, 12) : '');
+    els.propsGlow.innerHTML = props.includes('pumpkins') ? A.pumpkinFace(SLOT_A, 880) : '';
+    // sky: fireworks and bats (only visible after dusk, see fxOpacity)
+    let fx = '';
+    if (ev && ev.fireworks && !L.lite) { const cols = ['#FFD65C', '#F5A3C7', '#8FE3D0', '#FF8A6B', '#B7C4FF']; [[-760, 440], [-620, 520], [-520, 410], [-420, 500], [60, 430], [300, 500]].forEach(([x, y], i) => { fx += A.firework(x, y, cols[i % cols.length], (i * 1.3).toFixed(1)); }); }
+    if (ev && ev.bats) fx += A.bats();
+    els.fx.innerHTML = fx;
+    // the seagull's hat
+    try { const g = S.gull; g && g.accessory && g.accessory(ev && ev.hat ? A.accessory(ev.hat) : ''); } catch (e) { /* ignore */ }
+    clearTimeout(fwT); if (ev && ev.fireworks && !L.lite) scheduleFireworkSound();
+  }
+  function scheduleFireworkSound() {
+    clearTimeout(fwT);
+    fwT = setTimeout(guard('firework', () => { if (L.mounted && !document.hidden && L.state && L.state.night > 0.6 && C.audio && C.audio.firework && cfg().sound !== false && !L.calm) C.audio.firework(); scheduleFireworkSound(); }), 6000 + Math.random() * 9000);
+  }
+
+  /* ---- loyalty decor: sign, stickers, trophy ---- */
+  function loyalty() {
+    if (!L.mounted) return;
+    const cl = C.store.club, tier = cl.tier(), name = (C.store.state.prefs.name || '').trim(), badges = C.store.state.club.badges || {};
+    const chez = (tier.id === 'mouette' || tier.id === 'legende') && name;
+    const text = chez ? ('CHEZ ' + name.toUpperCase()).slice(0, 14) : 'OUVERT';
+    const tone = tier.id === 'legende' ? '#FFD65C' : tier.id === 'mouette' ? '#5CE6CB' : '#FF7BAC';
+    const w = clamp(60 + text.length * 21, 170, 262), cx = 424 - w / 2, cy = 500;
+    set('sign', [text, tone, w].join('|'), () => {
+      els.signwrap.innerHTML = A.signBody(cx, cy, w);
+      $('#lv-sign-t', els.signwrap).textContent = text; els.signGlow.innerHTML = A.signGlow(text, cx, cy, tone);
+      $('#lv-sign-t', els.signwrap).setAttribute('fill', tier.id === 'legende' ? '#8A7431' : '#5A62B8');
+    });
+    set('stickers', Object.keys(badges).sort().join(), () => { els.stickers.innerHTML = A.stickers(cl.badgeDefs, badges); });
+    set('trophy', tier.id === 'legende', (v) => { els.trophy.innerHTML = v ? A.trophy(2580, 880) : ''; });
+  }
+
+  /* ---- drop board ---- */
+  function dropTick() {
+    if (!els.dropT) return;
+    const d = C.cfg.drop; if (!d) return;
+    const ds = M.dropState(Date.now(), d);
+    const txt = ds.live ? 'EN COURS' : M.fmtCountdown(ds.msToNext);
+    set('dropt', txt, (v) => { els.dropT.textContent = v; });
+    set('dropn', d.name + '|' + ds.live, () => { els.dropN.textContent = d.name; els.dropS.textContent = ds.live ? `ENCORE ${M.fmtCountdown(ds.msLeft)}` : 'PROCHAIN DROP'; els.dropT.setAttribute('fill', ds.live ? '#8DF0B3' : '#FFD65C'); });
+    if (ds.live) els.dropS.textContent = `ENCORE ${M.fmtCountdown(ds.msLeft)}`;
+    set('dropglow', ds.live, (v) => { els.dropGlowG.innerHTML = v ? A.dropGlow() : ''; });
+  }
+
+  /* ------------------------------------------------------------------ small interactions (never while the show runs) */
+  const busy = () => C.pop.busy() || document.body.classList.contains('has-modal');
+  const pickOf = (a) => a[Math.floor(Math.random() * a.length)];
+  const talk = async (lines, act) => {
+    const UI = C.ui, g = C.scene.gull; if (busy()) return;
+    if (act) g.act(act);
+    await UI.say(lines, { gap: 350 }); UI.chips(C.chat.mainChips());
+  };
+  const GAGS = {
+    'lv-clock': () => {
+      const st = L.state || compute(), h = Math.floor(st.hour) % 24, m = Math.floor((st.hour % 1) * 60), hh = String(h).padStart(2, '0'), mm = String(m).padStart(2, '0');
+      const quip = { morning: 'Parfait pour un premier pochon.', dawn: 'Les lève-tôt ont droit au meilleur pop-corn.', day: 'Il n’y a pas d’heure pour le pop-corn. Vraiment pas.', sunset: 'Les guirlandes vont s’allumer, tu vas voir.', dusk: 'C’est l’heure où le kiosque brille.', night: 'Il est tard, mais le kiosque ne ferme jamais. Moi, si, un peu.' }[st.phase];
+      return talk([`Il est **${hh} h ${mm}** au kiosque.`, quip], 'point');
+    },
+    'lv-sign': () => talk(pickOf([['Ouvert. Toujours. Même quand je dors debout.'], ['Cette enseigne s’allume toute seule au coucher du soleil. Je n’y suis pour rien.'], ['« Ouvert », ça veut dire que je suis là. En vrai, je suis surtout là pour le pop-corn.']]), 'nod'),
+    'lv-drop': () => { if (busy()) return; C.chat.act('drop'); },
+    'lv-crab': () => { const g = C.scene.gull; if (busy()) return; C.audio.boing && C.audio.boing(); return talk(pickOf([['Aïe ! Il m’a pincé la patte.', 'C’est Gérard. Il vit là depuis avant le kiosque.'], ['Ne le nourris pas au caramel, il devient impossible.'], ['Il marche de côté. C’est une méthode de vente comme une autre.']]), 'surprise'); },
+  };
+  function bindClicks() {
+    const h = guard('click', (e) => { if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') return; const t = e.target.closest && e.target.closest('#lv-clock,#lv-sign,#lv-drop,#lv-crab'); if (!t) return; e.preventDefault(); const f = GAGS[t.id]; if (f) f(); });
+    els.wall.addEventListener('click', h); els.wall.addEventListener('keydown', h);
+  }
+
+  /* ------------------------------------------------------------------ lifecycle */
+  function start() {
+    const tick = guard('tick', () => { if (document.hidden) return; const st = compute(); render(st); dropTick(); });
+    tick(); loyalty();
+    timers.tick = setInterval(tick, 15000);
+    timers.sec = setInterval(guard('sec', () => { if (!document.hidden) dropTick(); }), 1000);
+    // governor: if the frame rate suffers, the ambience gets out of the way (static "calm" look) and stays there for the session
+    let n = 0, sum = 0, prev = 0, t0 = 0;
+    // a device that says it is weak starts lite
+    if ((navigator.hardwareConcurrency || 4) <= 2 || (navigator.deviceMemory && navigator.deviceMemory <= 2)) setLevel(Math.min(L.level, 1), 'device');
+    offTicker = U.ticker.add(guard('governor', (dt, now) => {
+      if (!L.mounted) return;
+      if (prev && now - prev < 200 && !document.hidden) { n++; sum += now - prev; }
+      prev = now; if (!t0) t0 = now;
+      const duck = C.pop.busy() || document.body.classList.contains('has-modal');
+      set('duck', duck, (v) => C.scene.stage.classList.toggle('lv-duck', v));
+      if (now - t0 > 2500) { const avg = n ? sum / n : 0; t0 = now; n = 0; sum = 0; L.gv.avg = avg; if (!L.gv.off && avg > 34 && L.level > 0 && performance.now() > 9000) { if (++L.gv.bad >= 2) { L.gv.bad = 0; setLevel(L.level - 1, 'perf'); } } else L.gv.bad = 0; }
+    }));
+    offBus.push(C.bus.on('club', guard('club', loyalty)), C.bus.on('club:tier', guard('tier', loyalty)), C.bus.on('reset', guard('reset', loyalty)), C.bus.on('audio', guard('audio', () => L.state && ambience(L.state))));
+    document.addEventListener('visibilitychange', L._vis = guard('vis', () => { if (!document.hidden) { last.wx = ''; tick(); } }));
+    bindClicks();
+  }
+  function setLevel(n, why) {
+    L.level = n; L.calm = n === 0; L.lite = n <= 1; L.calmWhy = why || '';
+    const st = C.scene && C.scene.stage;
+    if (st) { st.classList.toggle('lv-calm', L.calm); st.classList.toggle('lv-lite', L.lite); }
+    last.wx = ''; last.event = undefined;
+    if (L.mounted && L.state) { weatherLayers(L.state); applyEvent(L.state.ev, L.state); ambience(L.state); }
+  }
+  const setCalm = (v, why) => setLevel(v ? 0 : 2, why);
+  L.mount = () => {
+    try {
+      if (L.mounted || L.failed || !C.scene || !C.scene.ready) return;
+      if (window.CORNSTY_LIVING === false || cfg().enabled === false) { L.mode = 'off'; return; }
+      L.mode = (C.store.state.prefs.living) || 'auto';
+      if (L.mode === 'off') return;
+      build(); L.mounted = true; L.level = 2; start(); if (L.mode === 'calm') setLevel(0, 'setting'); fetchWeather();
+    } catch (e) { fail('mount', e); }
+  };
+  L.unmount = () => {
+    try {
+      clearInterval(timers.tick); clearInterval(timers.sec); clearInterval(timers.weather); clearTimeout(thunderT); clearTimeout(fwT); timers = {};
+      offTicker && offTicker(); offTicker = null; offBus.forEach((f) => f && f()); offBus = [];
+      if (L._vis) document.removeEventListener('visibilitychange', L._vis);
+      const S = C.scene;
+      try { U.$$('#deco .flag').forEach((g) => { g.style.display = ''; const p = g.querySelector('path'); if (p && p.dataset.lvo) { p.setAttribute('fill', p.dataset.lvo); delete p.dataset.lvo; } }); } catch (e) { /* ignore */ }
+      try { S.gull && S.gull.accessory && S.gull.accessory(''); } catch (e) { /* ignore */ }
+      if (els.sky) S.removeLayer(els.sky);
+      nodes.forEach((n) => { try { n.remove(); } catch (e) { /* ignore */ } });
+      C.audio && C.audio.ambience && C.audio.ambience({});
+      if (S.stage) { S.stage.style.background = ''; S.stage.classList.remove('lv-on', 'lv-calm', 'lv-lite', 'lv-duck', 'lv-smooth'); }
+      try { const sb = $('#surfboard', S.world); if (sb) sb.style.filter = ''; } catch (e) { /* ignore */ }
+      S.layout && S.layout();
+    } catch (e) { /* the shop must never be affected */ }
+    els = {}; nodes = []; L.mounted = false; L.state = null; L.over = {}; L.level = 2; L.calm = false; L.lite = false; L.calmWhy = ''; Object.keys(last).forEach((k) => delete last[k]);
+  };
+
+  /* ------------------------------------------------------------------ public controls */
+  // preview: L.set({ time: 'night' | 'dawn' | 'morning' | 'day' | 'golden' | 'sunset' | 'dusk' | 'HH:MM' | 'real', weather: 'clear'|'clouds'|'rain'|'storm'|'snow'|'fog'|'auto', event: 'noel'|'halloween'|...|'none'|'auto' })
+  L.set = guard('set', (o) => {
+    if (!L.mounted) return;
+    Object.assign(L.over, o);
+    const st = C.scene.stage; if (!U.reduced()) st.classList.add('lv-smooth'); clearTimeout(L._sm); L._sm = setTimeout(() => st.classList.remove('lv-smooth'), 3400);
+    Object.keys(last).forEach((k) => { if (k !== 'sign' && k !== 'stickers' && k !== 'trophy') delete last[k]; });
+    render(compute());
+  });
+  L.setMode = (m) => {
+    L.mode = m; C.store.prefs({ living: m });
+    if (m === 'off') { L.unmount(); return; }
+    if (!L.mounted) { L.failed = false; L.mount(); }
+    setLevel(m === 'calm' ? 0 : 2, 'setting');
+  };
+  L.hello = () => { const st = L.state; if (!st || !st.ev || !st.ev.hello || helloed[st.ev.id] || L.over.event) return null; helloed[st.ev.id] = 1; return st.ev.hello; };
+  L.debug = () => ({ mounted: L.mounted, mode: L.mode, level: L.level, calm: L.calm, calmWhy: L.calmWhy, fps: L.gv.avg && +(1000 / L.gv.avg).toFixed(1), over: L.over, phase: L.state && L.state.phase, event: L.state && L.state.ev && L.state.ev.id, weather: L.state && L.state.weather.type, nodes: nodes.length });
+
+  /* optional real weather (only when cfg.living.weather.mode === 'real' or window.CORNSTY_WEATHER is defined) */
+  async function fetchWeather() {
+    const c = cfg(), wc = c.weather || {};
+    const run = guard('weather', async () => {
+      if (!L.mounted) return;
+      if (typeof window.CORNSTY_WEATHER === 'function') { const w = await window.CORNSTY_WEATHER(); if (w && w.type) L.realWeather = Object.assign({ cloud: 0.5, intensity: 0.6 }, w); }
+      else if (wc.mode === 'real' && c.place) {
+        const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 6000);
+        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.place.lat}&longitude=${c.place.lon}&current=weather_code,wind_speed_10m&timezone=auto`, { signal: ctl.signal }); clearTimeout(t);
+        const j = await r.json(); if (j && j.current) L.realWeather = M.fromWmo(j.current.weather_code, j.current.wind_speed_10m);
+      }
+      last.wx = ''; if (L.mounted) render(compute());
+    });
+    if (typeof window.CORNSTY_WEATHER !== 'function' && wc.mode !== 'real') return;
+    try { await run(); } catch (e) { /* offline: the ambience weather stays */ }
+    timers.weather = setInterval(() => { run().catch(() => {}); }, (wc.refreshMin || 30) * 60000);
+  }
+
+  /* ------------------------------------------------------------------ settings UI (rendered by the core menu through two guarded calls) */
+  const opt = (v, t, cur) => `<option value="${v}"${cur === v ? ' selected' : ''}>${t}</option>`;
+  L.menuHtml = () => {
+    const c = cfg(); if (c.enabled === false || window.CORNSTY_LIVING === false) return '';
+    const o = L.over, mode = L.mounted ? (L.calm ? 'calm' : 'auto') : L.mode === 'off' ? 'off' : 'auto';
+    return `<div class="setting"><span><b>Kiosque vivant</b><br><small>Jour et nuit, météo d’ambiance, fêtes de l’année${L.calmWhy === 'perf' ? ' (allégé automatiquement : ton appareil peinait)' : ''}</small></span>
+<select data-lv="mode" aria-label="Kiosque vivant">${opt('auto', 'Complet', mode)}${opt('calm', 'Calme', mode)}${opt('off', 'Désactivé', mode)}</select></div>
+<details class="lv-prev"${L.mounted ? '' : ' hidden'}><summary>Aperçu de l’ambiance <small>(pour tester)</small></summary>
+<div class="setting"><span><b>Heure</b></span><select data-lv="time" aria-label="Heure du kiosque">${opt('real', 'Réelle', o.time || 'real')}${opt('dawn', 'Aube', o.time)}${opt('morning', 'Matin', o.time)}${opt('day', 'Plein jour', o.time)}${opt('golden', 'Fin d’après-midi', o.time)}${opt('sunset', 'Coucher de soleil', o.time)}${opt('dusk', 'Crépuscule', o.time)}${opt('night', 'Nuit', o.time)}</select></div>
+<div class="setting"><span><b>Météo</b></span><select data-lv="weather" aria-label="Météo du kiosque">${opt('auto', 'Ambiance du jour', o.weather || 'auto')}${opt('clear', 'Soleil', o.weather)}${opt('clouds', 'Nuageux', o.weather)}${opt('rain', 'Pluie', o.weather)}${opt('storm', 'Orage', o.weather)}${opt('snow', 'Neige', o.weather)}${opt('fog', 'Brouillard', o.weather)}</select></div>
+<div class="setting"><span><b>Fête</b></span><select data-lv="event" aria-label="Fête du kiosque">${opt('auto', 'Selon la date', o.event || 'auto')}${opt('none', 'Aucune', o.event)}${(c.events || []).map((e) => opt(e.id, e.label, o.event)).join('')}</select></div></details>`;
+  };
+  L.bindMenu = (root) => {
+    U.$$('[data-lv]', root).forEach((s) => s.addEventListener('change', guard('menu', (e) => {
+      const k = s.dataset.lv, v = s.value;
+      if (k === 'mode') { L.setMode(v); const d = $('.lv-prev', root); if (d) d.hidden = v === 'off'; C.ui.toast(v === 'off' ? 'Kiosque vivant désactivé' : 'Réglage enregistré'); }
+      else L.set({ [k]: v === 'auto' || v === 'real' ? null : v });
+    })));
+  };
+})((window.Cornsty = window.Cornsty || {}));
+
+;
 /* src/js/main.js */
 /* Cornsty - boot, menu/settings, wiring between modules */
 (function (C) {
@@ -4331,6 +5272,7 @@ ${SE.poster()}
 <div class="setting"><span><b>Ambiance mer</b><br><small>Vagues très discrètes (avec le son)</small></span><button class="switch" role="switch" aria-checked="${p.sea !== false}" data-s="sea" aria-label="Ambiance mer"></button></div>
 <div class="setting"><span><b>Show de fabrication</b><br><small>La Mouette éclate et emballe chaque pochon</small></span><select data-s="showMode" aria-label="Show de fabrication"><option value="auto" ${p.showMode !== 'always' && p.showMode !== 'never' ? 'selected' : ''}>1re fois complet, ensuite rapide</option><option value="always" ${p.showMode === 'always' ? 'selected' : ''}>Toujours complet</option><option value="never" ${p.showMode === 'never' ? 'selected' : ''}>Jamais (instantané)</option></select></div>
 <div class="setting"><span><b>Réduire les animations</b><br><small>Caméra, parallaxe et confettis atténués</small></span><button class="switch" role="switch" aria-checked="${U.reduced()}" data-s="motion" aria-label="Réduire les animations"></button></div>
+${C.living && C.living.menuHtml ? C.living.menuHtml() : ''}
 <div class="setting"><span><b>Remettre la démo à zéro</b><br><small>Efface panier, Club et commandes de cet appareil</small></span><button class="btn small" data-a="reset">Réinitialiser</button></div>
 <p class="eyebrow">Démo de comparaison · aucun paiement réel · données stockées sur cet appareil uniquement</p>` });
     const el = m.el;
@@ -4351,6 +5293,7 @@ ${SE.poster()}
       else if (s.dataset.s === 'motion') { C.store.prefs({ motion: on ? 'reduced' : 'full' }); document.documentElement.classList.toggle('reduced', U.reduced()); }
     }));
     $('[data-s=showMode]', el).addEventListener('change', (e) => { C.store.prefs({ showMode: e.target.value }); UI.toast('Réglage enregistré'); });
+    C.living && C.living.bindMenu && C.living.bindMenu(el);
   };
   const faq = () => {
     const rows = C.data.faq.map((f, i) => `<details ${i === 0 ? 'open' : ''}><summary>${U.esc(f.q)}</summary><p>${U.esc(f.a.replace('salut@cornsty.fr', C.cfg.brand.email))}</p></details>`).join('');
@@ -4393,6 +5336,7 @@ ${SE.poster()}
     try { const ref = new URLSearchParams(location.search).get('ref'); if (ref && !C.store.state.club.ref.used) { const r = C.store.club.useReferral(ref); if (r.ok) setTimeout(() => UI.toast('Code parrain appliqué : ' + r.msg, { kind: 'good' }), 2500); } } catch (e) { /* ignore */ }
     if (p.sound) { /* audio can only start after a gesture: the intro button unlocks it */ }
     C.shop.syncRegister(); C.scene.paint('nature');
+    C.living && C.living.mount && C.living.mount();          // optional layer: day/night, weather, feasts (see living.js)
     // hide the seagull behind the counter until the intro ends
     const g = C.scene.gull; g.S.bobY.snap(520); g.st.idle = false;
     C.scene.setCam(1450, 740, 0.62); // wide shot during the intro

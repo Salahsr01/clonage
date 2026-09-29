@@ -48,7 +48,26 @@
       MOUETTE: { type: 'ship', label: 'Livraison offerte' },
     },
     payment: { provider: 'demo' },                 // 'demo' | 'custom' (see README: window.CORNSTY_PAY)
-    drop: { name: 'Drop d’automne', day: 5, hour: 18 }, // next Friday 18:00 - purely cosmetic countdown (day: 0=Sun..6=Sat)
+    drop: { name: 'Drop d’automne', day: 5, hour: 18, liveHours: 6 }, // weekly countdown on the drop board (day: 0=Sun..6=Sat) - purely cosmetic until you plug a real drop
+    /* The "living kiosk": day and night, weather, feasts, the drop board, your loyalty decor.  It is an OPTIONAL layer:
+       enabled:false (or window.CORNSTY_LIVING = false before the scripts) and the kiosk stays exactly as designed. */
+    living: {
+      enabled: true,
+      lat: 48.86,                                   // day length follows this latitude (Paris); sunrise/sunset are shown on the VISITOR'S clock
+      weather: { mode: 'ambience', refreshMin: 30 }, // 'ambience' = seeded dice roll per day (offline, honest: it is decoration)
+                                                    // 'real' = Open-Meteo for the kiosk's place (needs network; add it to your privacy notice)
+                                                    // 'clear' = always fair; or set window.CORNSTY_WEATHER = () => ({ type: 'rain', cloud: .9, intensity: .6 })
+      place: { lat: 48.8566, lon: 2.3522 },         // used only by weather.mode = 'real'
+      sound: true,                                  // rain / wind / crickets / thunder, only when the visitor turned the sound on
+      events: [                                     // [month, day] ranges, inclusive; a range may straddle New Year
+        { id: 'valentin', label: 'Saint-Valentin', from: [2, 7], to: [2, 14], bunting: ['#DE3F39', '#F5A3C7', '#F8F2E0', '#F5A3C7'], hat: 'heart', props: ['hearts', 'heartBunting'], particles: 'hearts', hello: 'Joyeuse Saint-Valentin ! Un pochon à partager, ça se fait très bien.' },
+        { id: 'bastille', label: 'Fête nationale', from: [7, 11], to: [7, 14], bunting: ['#DE3F39', '#F8F2E0', '#3E52CF'], hat: 'cockade', fireworks: true, hello: 'Bonne fête nationale ! Ce soir, feu d’artifice. Le pop-corn, lui, éclate toute l’année.' },
+        { id: 'halloween', label: 'Halloween', from: [10, 22], to: [11, 1], bunting: ['#FF8A1E', '#26232B', '#8A4FD6', '#FF8A1E'], hat: 'witch', props: ['pumpkins', 'cobweb', 'spider'], bats: true, lights: ['#FFB04A', '#C58BFF', '#FFB04A'], hello: 'Joyeux Halloween ! Des bonbons ou du pop-corn ? Moi, j’ai choisi.' },
+        { id: 'noel', label: 'Noël', from: [12, 8], to: [12, 26], bunting: ['#DE3F39', '#F8F2E0', '#2FB59B'], hat: 'santa', props: ['garland', 'gifts', 'wreath'], lights: ['#FFE9A6', '#FF8B8B', '#7BE3C8', '#8FA8FF'], particles: 'snow', hello: 'Joyeux Noël ! J’ai sorti le bonnet. Ne dis rien.' },
+        { id: 'nouvelan', label: 'Nouvel An', from: [12, 28], to: [1, 2], bunting: ['#FFD65C', '#788CE3', '#F5A3C7', '#F8F2E0'], hat: 'party', props: ['streamers'], fireworks: true, particles: 'confetti', hello: 'Bonne année ! Ma résolution : zéro grain oublié au fond du pochon.' },
+      ],
+      seasons: { autumn: { particles: 'leaves' } },  // gentle leaves in autumn when there is no feast
+    },
   };
 
   /* ------------------------------------------------------------------ flavours (from the brand-book packs) */

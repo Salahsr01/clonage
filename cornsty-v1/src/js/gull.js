@@ -53,6 +53,7 @@
     <g class="g-hat">
       ${pp('crown')}${pp('crownL')}${pp('band')}${pp('bandL')}${pp('seam1')}${pp('seam2')}
       <g class="g-tuft">${pp('tuft')}</g>
+      <g class="g-acc"></g>
     </g>
     <rect class="g-necktop" x="-12" y="-436" width="82" height="38" fill="${K.cream}"/>
     <g class="g-hat2">${pp('brim')}${pp('brimL')}</g>
@@ -91,7 +92,7 @@
     const q = (s) => el.querySelector(s);
     const N = {
       root: el, bob: q('.g-bob'), legA: q('.g-legA'), legB: q('.g-legB'), wingF: q('.g-wingF'), wingFin: q('.g-wingF-in'), wingN: q('.g-wingN'), wingNin: q('.g-wingN-in'), hold: q('.g-hold'),
-      fold: q('.g-fold'), cap: q('.g-cap'), head: q('.g-head'), headtop: q('.g-headtop'), hat: q('.g-hat'), hat2: q('.g-hat2'), tuft: q('.g-tuft'), face: q('.g-face'),
+      fold: q('.g-fold'), cap: q('.g-cap'), acc: q('.g-acc'), head: q('.g-head'), headtop: q('.g-headtop'), hat: q('.g-hat'), hat2: q('.g-hat2'), tuft: q('.g-tuft'), face: q('.g-face'),
       eyes: q('.g-eyes'), eyeL: q('.g-eyeL'), eyeR: q('.g-eyeR'), brow: q('.g-brow'), glasses: q('.g-glasses'), lensL: q('.g-lensL'), lensR: q('.g-lensR'),
       beak: q('.g-beak'), jaw: q('.g-jaw'), jawline: q('.g-jawline'), mouth: q('.g-mouth'), tongue: q('.g-tongue'), fx: q('.g-fx'), shadow: q('.g-shadow'), emotes: q('.g-emotes'), upper: q('.g-upper'),
     };
@@ -206,6 +207,8 @@
     // glasses state: 'on' | 'up' | 'off'
     api.glasses = (mode) => { st.glasses = mode; S.gl.t = mode === 'on' ? 0 : mode === 'up' ? 0.55 : 1; S.eyeOn.t = mode === 'on' ? 0 : 1; };
     api.lens = (sym) => { st.lens = sym || ''; };
+    // seasonal accessory on top of the hat (santa hat, witch hat...): the SVG string comes from the optional living module
+    api.accessory = (svg) => { N.acc.innerHTML = svg || ''; };
     api.fx = (on) => { st.fx = !!on; };
 
     const hop = async (r, h = 46, dur = 340) => {
