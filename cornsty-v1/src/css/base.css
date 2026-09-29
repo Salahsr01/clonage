@@ -1,0 +1,28 @@
+/* Cornsty - tokens, reset, stage */
+:root{
+  --ink:#26232b;--cream:#F8F2E0;--paper:#FBF8EE;--blue:#788CE3;--blue-d:#3E52CF;--navy:#2B3690;--red:#DE3F39;--pink:#F5A3C7;--teal:#2FB59B;--yellow:#FFD65C;--orange:#FF8A1E;
+  --ui-top:64px;--ui-bottom:150px;
+  --r:18px;--shadow:0 10px 30px rgba(38,35,43,.22);--font-d:"League Gothic",Impact,"Arial Narrow",sans-serif;--font-b:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;--font-m:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--cream);color:var(--ink);font-family:var(--font-b);-webkit-font-smoothing:antialiased;overflow:hidden;overscroll-behavior:none}
+body{position:fixed;inset:0;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+button:focus-visible,[tabindex]:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset:3px;border-radius:8px}
+[hidden]{display:none!important}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#app{position:fixed;inset:0;overflow:hidden;background:#BFCBF8}
+.stage{position:absolute;inset:0;overflow:hidden;background:linear-gradient(#8FA3F0,#BFCBF8 55%,#F3EEDF)}
+.layer{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;pointer-events:none}
+.layer.main{pointer-events:auto}
+.layer svg{display:block;overflow:visible}
+#world{overflow:visible}
+#pop{position:absolute;pointer-events:none}
+.grain{position:absolute;inset:0;pointer-events:none;opacity:.07;mix-blend-mode:multiply;background-image:var(--grain,none);background-size:180px}
+.stage{background:linear-gradient(#8FA3F0,#BFCBF8 40%,#F3EEDF 62%,#EBDAAE 80%)}
+
+.wsvg{position:absolute;left:0;top:0;display:block;overflow:visible}
+.wsvg-gull{pointer-events:none;will-change:transform}
+.wsvg-front{pointer-events:none}
+.wsvg-front *{pointer-events:auto}

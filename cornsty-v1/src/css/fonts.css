@@ -1,0 +1,6 @@
+/* Brand fonts (latin subsets). In the single-file build these urls are inlined as base64. */
+@font-face{font-family:"League Gothic";font-style:normal;font-weight:400;font-display:swap;src:url(../../assets/fonts/league-gothic-400.woff2) format("woff2")}
+@font-face{font-family:"Inter";font-style:normal;font-weight:400 700;font-display:swap;src:url(../../assets/fonts/inter.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-style:normal;font-weight:400;font-display:swap;src:url(../../assets/fonts/plex-mono-400.woff2) format("woff2")}
+@font-face{font-family:"IBM Plex Mono";font-style:normal;font-weight:500;font-display:swap;src:url(../../assets/fonts/plex-mono-500.woff2) format("woff2")}
+@font-face{font-family:"Yellowtail";font-style:normal;font-weight:400;font-display:swap;src:url(../../assets/fonts/yellowtail-400.woff2) format("woff2")}

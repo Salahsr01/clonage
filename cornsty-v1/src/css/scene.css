@@ -1,0 +1,27 @@
+/* Cornsty - scene animation & hover states */
+.hot{cursor:pointer}
+.hot .lift{transition:transform .28s var(--ease);transform-box:fill-box;transform-origin:50% 100%}
+.hot:hover .lift,.hot:focus-visible .lift{transform:translateY(-12px) scale(1.04)}
+.hot:focus-visible{outline:none}
+#menu-board:hover rect:first-of-type{stroke:var(--blue-d)}
+#surfboard{transition:transform .4s var(--ease);transform-box:fill-box}
+#surfboard:hover{transform:translate(420px,1080px) rotate(-6deg)}
+#basket.bump{animation:bump .5s var(--ease)}
+@keyframes bump{0%{transform:translate(1745px,866px) scale(1)}35%{transform:translate(1745px,858px) scale(1.08,.94)}100%{transform:translate(1745px,866px) scale(1)}}
+.flag{animation:sway 3.6s steps(10,end) infinite;transform-box:fill-box;transform-origin:50% 0}
+@keyframes sway{0%,100%{rotate:-5deg}50%{rotate:5deg}}
+.bulb{animation:tw 2.4s steps(5,end) infinite}
+@keyframes tw{0%,100%{opacity:1}50%{opacity:.55}}
+.cloud{animation:drift 90s steps(180,end) infinite alternate}
+.cloud.c1{animation-duration:120s}.cloud.c2{animation-duration:70s}
+@keyframes drift{from{translate:-60px 0}to{translate:120px 0}}
+.sun-spin{animation:spin 60s steps(120,end) infinite;transform-box:fill-box;transform-origin:center}
+@keyframes spin{to{rotate:360deg}}
+.sky-bird{animation:flap 2.6s steps(6,end) infinite;transform-box:fill-box;transform-origin:center}
+.sky-bird.b1{animation-delay:-.9s}.sky-bird.b2{animation-delay:-1.7s}
+@keyframes flap{0%,100%{translate:0 0;scale:1 1}50%{translate:14px -8px;scale:1 .6}}
+.wave{animation:wv 6s steps(24,end) infinite alternate}
+@keyframes wv{from{translate:-30px 0}to{translate:30px 4px}}
+#m-glow{transition:opacity .3s}
+@media (prefers-reduced-motion:reduce){.flag,.bulb,.cloud,.sun-spin,.sky-bird,.wave{animation:none}}
+.reduced .flag,.reduced .bulb,.reduced .cloud,.reduced .sun-spin,.reduced .sky-bird,.reduced .wave{animation:none}
