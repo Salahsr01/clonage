@@ -27,7 +27,7 @@ VIEWS = [('face', 0.0), ('trois-quarts', 38.0), ('profil', 90.0), ('dos', 180.0)
 sc = ns['fresh']('TURN_gull')
 cE, cH, cL, cC = (ns['make_col'](sc, n) for n in ('COL_ENV', 'COL_HERO', 'COL_LGT', 'COL_CAM'))
 g = ns['make_gull'](cH, loc=(0, 0, 0), yaw_deg=0.0, pitch_deg=0.0)
-floor = ns['new_mat']('MAT_floor_t', '#DCD6E6', 0.85)
+floor = ns['new_mat']('MAT_floor_t', '#8D8FC4', 0.85)
 ns['new_obj']('ENV_floor_t', ns['cyl_mesh']('ENV_floor_t', 3.0, 0.05, 96), cE, loc=(0, 0, 0.505), mats=[floor])   # plateau sous le corps, a la hauteur du comptoir de la scene
 
 
@@ -42,19 +42,19 @@ def light(name, kind, energy, color, loc, target, size=None, size_y=None):
     o.rotation_euler = (Vector(target) - Vector(loc)).to_track_quat('-Z', 'Y').to_euler()
 
 
-light('LGT_key', 'AREA', 260, (1.0, 0.86, 0.72), (2.4, -2.8, 2.9), (0, 0, 1.2), 2.4, 2.4)
-light('LGT_fill', 'AREA', 90, (0.7, 0.75, 1.0), (-2.8, -2.2, 1.7), (0, 0, 1.2), 3.0, 3.0)
-light('LGT_rim', 'AREA', 150, (1.0, 0.92, 0.85), (-1.2, 2.6, 2.8), (0, 0, 1.3), 2.0, 2.0)
+light('LGT_key', 'AREA', 85, (1.0, 0.86, 0.72), (2.4, -2.8, 2.9), (0, 0, 1.2), 2.4, 2.4)
+light('LGT_fill', 'AREA', 32, (0.7, 0.75, 1.0), (-2.8, -2.2, 1.7), (0, 0, 1.2), 3.0, 3.0)
+light('LGT_rim', 'AREA', 60, (1.0, 0.92, 0.85), (-1.2, 2.6, 2.8), (0, 0, 1.3), 2.0, 2.0)
 w = bpy.data.worlds.new('W_turn')
 w.use_nodes = True
-w.node_tree.nodes['Background'].inputs['Color'].default_value = (0.62, 0.66, 0.85, 1)
-w.node_tree.nodes['Background'].inputs['Strength'].default_value = 0.9
+w.node_tree.nodes['Background'].inputs['Color'].default_value = (0.36, 0.40, 0.72, 1)
+w.node_tree.nodes['Background'].inputs['Strength'].default_value = 0.8
 sc.world = w
 cd = bpy.data.cameras.new('CAM_t')
-cd.lens = 52
+cd.lens = 80
 cd.sensor_width = 36
-co = ns['new_obj']('CAM_t', cd, cC, loc=(0.0, -4.6, 1.42))
-co.rotation_euler = (Vector((0, 0, 1.33)) - Vector(co.location)).to_track_quat('-Z', 'Y').to_euler()
+co = ns['new_obj']('CAM_t', cd, cC, loc=(0.0, -4.3, 1.32))
+co.rotation_euler = (Vector((0, 0, 1.22)) - Vector(co.location)).to_track_quat('-Z', 'Y').to_euler()
 sc.camera = co
 sc.render.engine = 'CYCLES'
 sc.render.resolution_x, sc.render.resolution_y, sc.render.resolution_percentage = W, H, 100

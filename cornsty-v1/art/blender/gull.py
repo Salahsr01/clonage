@@ -120,9 +120,9 @@ def make_gull(coll, loc=(0, 0, 0), yaw_deg=58.0, pitch_deg=4.0, hat_tilt=(-4.0, 
         return o
 
     bu = beak_part('HERO_gull_beak_upper', [(0, 0.066, -0.088), (0, 0.122, -0.091), (0, 0.172, -0.104), (0, 0.218, -0.132)],
-                   lambda t: (KH * (0.054 * (1 - 0.84 * t ** 1.15) + 0.007), KH * (0.046 * (1 - 0.80 * t ** 1.1) + 0.007)), 'beak')
+                   lambda t: (KH * (0.043 * (1 - 0.84 * t ** 1.15) + 0.007), KH * (0.053 * (1 - 0.80 * t ** 1.1) + 0.007)), 'beak')
     bl = beak_part('HERO_gull_beak_lower', [(0, 0.066, -0.134), (0, 0.114, -0.138), (0, 0.156, -0.146), (0, 0.192, -0.154)],
-                   lambda t: (KH * (0.042 * (1 - 0.80 * t) + 0.004), KH * (0.020 * (1 - 0.70 * t) + 0.004)), 'beak2')
+                   lambda t: (KH * (0.034 * (1 - 0.80 * t) + 0.004), KH * (0.022 * (1 - 0.70 * t) + 0.004)), 'beak2')
 
     # lunettes : montures noires, verres sombres brillants, arcade et branches qui suivent la tete
     gl = []
